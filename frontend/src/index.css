@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --app-font-family: 'Lexend', sans-serif;
+    --app-font-scale: 1;
+    --app-letter-spacing: 0.03em;
+    --app-word-spacing: 0.1em;
+    --app-line-height: 1.6;
+    --bg-primary: #FAF6EE;
+    --text-primary: #2D2A26;
+    --card-bg: #FFFFFF;
+    --card-border: #E8DFD0;
+  }
+
+  body {
+    font-family: var(--app-font-family);
+    letter-spacing: var(--app-letter-spacing);
+    word-spacing: var(--app-word-spacing);
+    line-height: var(--app-line-height);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  /* Themes */
+  body.theme-cream {
+    --bg-primary: #FAF6EE;
+    --text-primary: #2D2A26;
+    --card-bg: #FFFFFF;
+    --card-border: #E8DFD0;
+  }
+
+  body.theme-pastel-green {
+    --bg-primary: #F0F7F2;
+    --text-primary: #1C3322;
+    --card-bg: #FFFFFF;
+    --card-border: #D1E7D7;
+  }
+
+  body.theme-pastel-peach {
+    --bg-primary: #FCF5EE;
+    --text-primary: #382416;
+    --card-bg: #FFFFFF;
+    --card-border: #F3DEC9;
+  }
+
+  body.theme-soft-blue {
+    --bg-primary: #F0F6FC;
+    --text-primary: #1B2B3F;
+    --card-bg: #FFFFFF;
+    --card-border: #D2E3F5;
+  }
+
+  body.theme-dark {
+    --bg-primary: #181920;
+    --text-primary: #EDEBF0;
+    --card-bg: #22242F;
+    --card-border: #333647;
+  }
+}
+
+/* Dyslexia reading ruler overlay */
+.reading-ruler {
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 52px;
+  background: rgba(254, 240, 138, 0.28);
+  border-top: 2px dashed rgba(202, 138, 4, 0.6);
+  border-bottom: 2px dashed rgba(202, 138, 4, 0.6);
+  pointer-events: none;
+  z-index: 9999;
+  transform: translateY(-50%);
+  transition: top 0.05s linear;
+}
+
+/* Word-by-word read-along synchronization highlight */
+.word-highlight-active {
+  background-color: #FEF08A;
+  color: #854D0E;
+  padding: 2px 6px;
+  border-radius: 6px;
+  box-shadow: 0 0 0 2px #FACC15;
+  transform: scale(1.05);
+  display: inline-block;
+  transition: all 0.15s ease-in-out;
+}
+
+.word-highlight-passed {
+  color: #4B5563;
+  opacity: 0.85;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}

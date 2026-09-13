@@ -1,0 +1,400 @@
+{
+  "users": [
+    {
+      "id": "68f15540-1cd1-4309-bcf7-2301315b5946",
+      "name": "Sarah Connor (Parent)",
+      "email": "test_parent_1789306825470@example.com",
+      "passwordHash": "$2a$10$fQhHaNsH3XoMPAN/OUiv.eap3ktt4TTb6DXF8NGLCAw8MhE4KgtY.",
+      "role": "parent",
+      "createdAt": "2026-09-13T13:40:26.299Z"
+    },
+    {
+      "id": "d2f23513-0b41-4771-ac01-ab4554877236",
+      "name": "Sarah Connor (Parent)",
+      "email": "test_parent_1789306985820@example.com",
+      "passwordHash": "$2a$10$86CMET33Ha8sKajwFmGbT.1x0V3v5s/qEucQpnUXJgjWcZbDwVGda",
+      "role": "parent",
+      "createdAt": "2026-09-13T13:43:06.000Z"
+    },
+    {
+      "id": "7512b8b3-8972-4f1c-afa8-90d8d6b2cf77",
+      "name": "Priyamvada Uprety",
+      "email": "priyamvada.uprety@gmail.com",
+      "passwordHash": "$2a$10$8L09jOHXTkzr..Yl590bheIAbSuHVBJUyVVLjnpWSV8pir5XoSUFm",
+      "role": "parent",
+      "createdAt": "2026-09-13T15:06:42.397Z"
+    }
+  ],
+  "children": [
+    {
+      "id": "child_d3f4aae0",
+      "parentId": "68f15540-1cd1-4309-bcf7-2301315b5946",
+      "name": "Tommy",
+      "age": 7,
+      "grade": "2",
+      "notes": "Occasional b/d letter reversals",
+      "consentConfirmed": true,
+      "consentDate": "2026-09-13T13:40:26.394Z",
+      "createdAt": "2026-09-13T13:40:26.394Z"
+    },
+    {
+      "id": "child_5a628d40",
+      "parentId": "d2f23513-0b41-4771-ac01-ab4554877236",
+      "name": "Tommy",
+      "age": 7,
+      "grade": "2",
+      "notes": "Occasional b/d letter reversals",
+      "consentConfirmed": true,
+      "consentDate": "2026-09-13T13:43:06.033Z",
+      "createdAt": "2026-09-13T13:43:06.033Z"
+    },
+    {
+      "id": "child_27d1238e",
+      "parentId": "7512b8b3-8972-4f1c-afa8-90d8d6b2cf77",
+      "name": "Noah",
+      "age": 7,
+      "grade": "2",
+      "notes": "",
+      "consentConfirmed": true,
+      "consentDate": "2026-09-13T15:07:02.094Z",
+      "createdAt": "2026-09-13T15:07:02.094Z"
+    }
+  ],
+  "consentRecords": [
+    {
+      "id": "06c7611d-47f4-4d41-b2c0-1cabfc332a7c",
+      "childId": "child_d3f4aae0",
+      "parentId": "68f15540-1cd1-4309-bcf7-2301315b5946",
+      "signatureName": "Sarah Connor",
+      "consentType": "PRELIMINARY_SCREENING_NON_MEDICAL",
+      "disclaimerAcknowledged": true,
+      "ipAddress": "::1",
+      "userAgent": "node",
+      "timestamp": "2026-09-13T13:40:26.394Z",
+      "createdAt": "2026-09-13T13:40:26.398Z"
+    },
+    {
+      "id": "19841823-994f-4748-983a-8b6411c25e5d",
+      "childId": "child_5a628d40",
+      "parentId": "d2f23513-0b41-4771-ac01-ab4554877236",
+      "signatureName": "Sarah Connor",
+      "consentType": "PRELIMINARY_SCREENING_NON_MEDICAL",
+      "disclaimerAcknowledged": true,
+      "ipAddress": "::1",
+      "userAgent": "node",
+      "timestamp": "2026-09-13T13:43:06.033Z",
+      "createdAt": "2026-09-13T13:43:06.035Z"
+    },
+    {
+      "id": "3b1b4f4d-e667-42b5-b9af-94e3d2bf2337",
+      "childId": "child_27d1238e",
+      "parentId": "7512b8b3-8972-4f1c-afa8-90d8d6b2cf77",
+      "signatureName": "Priyamvada Uprety",
+      "consentType": "PRELIMINARY_SCREENING_NON_MEDICAL",
+      "disclaimerAcknowledged": true,
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+      "timestamp": "2026-09-13T15:07:02.094Z",
+      "createdAt": "2026-09-13T15:07:02.100Z"
+    }
+  ],
+  "learnSessions": [
+    {
+      "id": "learn_26c0867c",
+      "childId": "child_d3f4aae0",
+      "parentId": "68f15540-1cd1-4309-bcf7-2301315b5946",
+      "durationSec": 120,
+      "cardsViewed": 6,
+      "readAlongCompleted": true,
+      "timestamp": "2026-09-13T13:40:26.421Z",
+      "createdAt": "2026-09-13T13:40:26.421Z"
+    },
+    {
+      "id": "learn_6722af4f",
+      "childId": "child_5a628d40",
+      "parentId": "d2f23513-0b41-4771-ac01-ab4554877236",
+      "durationSec": 120,
+      "cardsViewed": 6,
+      "readAlongCompleted": true,
+      "timestamp": "2026-09-13T13:43:06.047Z",
+      "createdAt": "2026-09-13T13:43:06.047Z"
+    }
+  ],
+  "testSessions": [
+    {
+      "id": "test_aaaadd6b",
+      "childId": "child_d3f4aae0",
+      "parentId": "68f15540-1cd1-4309-bcf7-2301315b5946",
+      "rawFeatures": {
+        "flashcardTotal": 8,
+        "flashcardCorrect": 7,
+        "reversalAttempts": 6,
+        "reversalErrors": 1,
+        "confusedPairs": [
+          {
+            "expected": "b",
+            "actual": "d",
+            "count": 1
+          }
+        ],
+        "readingDurationSec": 50,
+        "readingTotalWords": 55,
+        "readingCorrectWords": 50,
+        "pauseCount": 2,
+        "totalPauseDurationMs": 3200,
+        "averageHesitationMs": 1400,
+        "transcript": "Sam and Ben built a tall wooden boat...",
+        "transcriptSnippet": "Sam and Ben built a tall wooden boat..."
+      },
+      "scoreId": "score_ee0b32a8",
+      "timestamp": "2026-09-13T13:40:26.436Z",
+      "createdAt": "2026-09-13T13:40:26.436Z"
+    },
+    {
+      "id": "test_f292a1f7",
+      "childId": "child_5a628d40",
+      "parentId": "d2f23513-0b41-4771-ac01-ab4554877236",
+      "rawFeatures": {
+        "flashcardTotal": 8,
+        "flashcardCorrect": 7,
+        "reversalAttempts": 6,
+        "reversalErrors": 1,
+        "confusedPairs": [
+          {
+            "expected": "b",
+            "actual": "d",
+            "count": 1
+          }
+        ],
+        "readingDurationSec": 50,
+        "readingTotalWords": 55,
+        "readingCorrectWords": 50,
+        "pauseCount": 2,
+        "totalPauseDurationMs": 3200,
+        "averageHesitationMs": 1400,
+        "transcript": "Sam and Ben built a tall wooden boat...",
+        "transcriptSnippet": "Sam and Ben built a tall wooden boat..."
+      },
+      "scoreId": "score_8827900d",
+      "timestamp": "2026-09-13T13:43:06.063Z",
+      "createdAt": "2026-09-13T13:43:06.063Z"
+    }
+  ],
+  "scores": [
+    {
+      "id": "score_ee0b32a8",
+      "testSessionId": "test_aaaadd6b",
+      "childId": "child_d3f4aae0",
+      "childName": "Tommy",
+      "childGrade": "2",
+      "compositeScore": 29.8,
+      "category": "Low",
+      "categoryColor": "green",
+      "badgeText": "Low Screening Risk",
+      "metrics": {
+        "calculatedWpm": 60,
+        "targetWpm": 85,
+        "minWpm": 60,
+        "readingAccuracyPct": 91,
+        "flashcardAccuracyPct": 88,
+        "reversalErrorRatePct": 17,
+        "reversalErrors": 1,
+        "reversalAttempts": 6,
+        "confusedPairs": [
+          {
+            "expected": "b",
+            "actual": "d",
+            "count": 1
+          }
+        ],
+        "pauseCount": 2,
+        "totalPauseDurationMs": 3200,
+        "averageHesitationMs": 1400,
+        "readingDurationSec": 50
+      },
+      "riskBreakdown": {
+        "reversalRisk": 42,
+        "readingAccuracyRisk": 14,
+        "fluencyRisk": 50,
+        "pauseAndHesitationRisk": 17,
+        "flashcardRisk": 13
+      },
+      "weightsApplied": {
+        "reversalErrorRate": 0.3,
+        "readingAccuracy": 0.25,
+        "readingFluencyWpm": 0.2,
+        "pauseAndHesitation": 0.15,
+        "flashcardAccuracy": 0.1
+      },
+      "explanation": {
+        "summary": "Performance is well within the typical developmental range for Grade 2. Letter identification and reading fluency show strong age-appropriate skills.",
+        "strengths": [
+          "High word accuracy (90.9090909090909%) during the read-aloud assessment."
+        ],
+        "focusAreas": [
+          "Letter orientation confusion noted: \"b\" confused with \"d\" (1x).",
+          "Reading rate (60 WPM) is developing and approaching the Grade 2 target of 85 WPM."
+        ],
+        "recommendations": [
+          "Engage in multi-sensory letter tracing (sand trays, textured letter cards, directional arrows for 'b' and 'd').",
+          "Practice paired reading / read-along sessions with highlighted text to boost reading speed naturally.",
+          "Continue regular reading exposure and celebratory practice sessions."
+        ]
+      },
+      "disclaimer": "This is a preliminary screening indicator, not a medical diagnosis. Consult a certified educational psychologist or speech-language pathologist for comprehensive clinical evaluation.",
+      "mlScoreStub": {
+        "enabled": false,
+        "status": "model_in_development",
+        "notice": "Phase 2 ML model will activate once >= 250 verified sessions are collected.",
+        "modelVersion": "2.0.0-stub",
+        "predictedProbability": null,
+        "featureVectorProvided": {
+          "flashcardTotal": 8,
+          "flashcardCorrect": 7,
+          "reversalAttempts": 6,
+          "reversalErrors": 1,
+          "confusedPairs": [
+            {
+              "expected": "b",
+              "actual": "d",
+              "count": 1
+            }
+          ],
+          "readingDurationSec": 50,
+          "readingTotalWords": 55,
+          "readingCorrectWords": 50,
+          "pauseCount": 2,
+          "totalPauseDurationMs": 3200,
+          "averageHesitationMs": 1400,
+          "transcript": "Sam and Ben built a tall wooden boat..."
+        }
+      },
+      "timestamp": "2026-09-13T13:40:26.436Z",
+      "createdAt": "2026-09-13T13:40:26.439Z"
+    },
+    {
+      "id": "score_8827900d",
+      "testSessionId": "test_f292a1f7",
+      "childId": "child_5a628d40",
+      "childName": "Tommy",
+      "childGrade": "2",
+      "compositeScore": 29.8,
+      "category": "Low",
+      "categoryColor": "green",
+      "badgeText": "Low Screening Risk",
+      "metrics": {
+        "calculatedWpm": 60,
+        "targetWpm": 85,
+        "minWpm": 60,
+        "readingAccuracyPct": 91,
+        "flashcardAccuracyPct": 88,
+        "reversalErrorRatePct": 17,
+        "reversalErrors": 1,
+        "reversalAttempts": 6,
+        "confusedPairs": [
+          {
+            "expected": "b",
+            "actual": "d",
+            "count": 1
+          }
+        ],
+        "pauseCount": 2,
+        "totalPauseDurationMs": 3200,
+        "averageHesitationMs": 1400,
+        "readingDurationSec": 50
+      },
+      "riskBreakdown": {
+        "reversalRisk": 42,
+        "readingAccuracyRisk": 14,
+        "fluencyRisk": 50,
+        "pauseAndHesitationRisk": 17,
+        "flashcardRisk": 13
+      },
+      "weightsApplied": {
+        "reversalErrorRate": 0.3,
+        "readingAccuracy": 0.25,
+        "readingFluencyWpm": 0.2,
+        "pauseAndHesitation": 0.15,
+        "flashcardAccuracy": 0.1
+      },
+      "explanation": {
+        "summary": "Performance is well within the typical developmental range for Grade 2. Letter identification and reading fluency show strong age-appropriate skills.",
+        "strengths": [
+          "High word accuracy (90.9090909090909%) during the read-aloud assessment."
+        ],
+        "focusAreas": [
+          "Letter orientation confusion noted: \"b\" confused with \"d\" (1x).",
+          "Reading rate (60 WPM) is developing and approaching the Grade 2 target of 85 WPM."
+        ],
+        "recommendations": [
+          "Engage in multi-sensory letter tracing (sand trays, textured letter cards, directional arrows for 'b' and 'd').",
+          "Practice paired reading / read-along sessions with highlighted text to boost reading speed naturally.",
+          "Continue regular reading exposure and celebratory practice sessions."
+        ]
+      },
+      "disclaimer": "This is a preliminary screening indicator, not a medical diagnosis. Consult a certified educational psychologist or speech-language pathologist for comprehensive clinical evaluation.",
+      "mlScoreStub": {
+        "enabled": false,
+        "status": "model_in_development",
+        "notice": "Phase 2 ML model will activate once >= 250 verified sessions are collected.",
+        "modelVersion": "2.0.0-stub",
+        "predictedProbability": null,
+        "featureVectorProvided": {
+          "flashcardTotal": 8,
+          "flashcardCorrect": 7,
+          "reversalAttempts": 6,
+          "reversalErrors": 1,
+          "confusedPairs": [
+            {
+              "expected": "b",
+              "actual": "d",
+              "count": 1
+            }
+          ],
+          "readingDurationSec": 50,
+          "readingTotalWords": 55,
+          "readingCorrectWords": 50,
+          "pauseCount": 2,
+          "totalPauseDurationMs": 3200,
+          "averageHesitationMs": 1400,
+          "transcript": "Sam and Ben built a tall wooden boat..."
+        }
+      },
+      "timestamp": "2026-09-13T13:43:06.063Z",
+      "createdAt": "2026-09-13T13:43:06.065Z"
+    }
+  ],
+  "writingSessions": [
+    {
+      "id": "write_1d4e5014",
+      "childId": "child_d3f4aae0",
+      "parentId": "68f15540-1cd1-4309-bcf7-2301315b5946",
+      "charTarget": "b",
+      "durationSec": 12,
+      "penLifts": 2,
+      "strokePointCount": 2,
+      "boundingBox": {
+        "width": 360,
+        "height": 260
+      },
+      "timestamp": "2026-09-13T13:40:26.522Z",
+      "createdAt": "2026-09-13T13:40:26.522Z"
+    },
+    {
+      "id": "write_c00d429c",
+      "childId": "child_5a628d40",
+      "parentId": "d2f23513-0b41-4771-ac01-ab4554877236",
+      "charTarget": "b",
+      "durationSec": 12,
+      "penLifts": 2,
+      "strokePointCount": 2,
+      "boundingBox": {
+        "width": 360,
+        "height": 260
+      },
+      "timestamp": "2026-09-13T13:43:06.122Z",
+      "createdAt": "2026-09-13T13:43:06.122Z"
+    }
+  ],
+  "scoringConfigOverrides": null
+}

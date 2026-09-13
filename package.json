@@ -1,0 +1,30 @@
+{
+  "name": "lexiscreen-monorepo",
+  "version": "1.0.0",
+  "description": "LexiScreen — Multimodal Learning-Difficulty Screening System for Children",
+  "type": "module",
+  "scripts": {
+    "build": "npm --prefix frontend install && npm --prefix frontend run build && npm --prefix backend install",
+    "start": "node backend/src/server.js",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "test": "npm --prefix backend test"
+  },
+  "keywords": [
+    "dyslexia",
+    "screening",
+    "learning-difficulty",
+    "multimodal",
+    "edtech"
+  ],
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "uuid": "^10.0.0"
+  },
+  "author": "",
+  "license": "MIT"
+}
