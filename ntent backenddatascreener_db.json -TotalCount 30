@@ -1,0 +1,33 @@
+warning: in the working copy of 'backend/data/screener_db.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/config/scoringConfig.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/engine/mlEngineStub.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/engine/scoringEngine.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/routes/childRoutes.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/routes/sessionRoutes.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/server.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/test/e2e.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/ChildModal.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/context/AccessibilityContext.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/pages/HandwritingPreview.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/pages/LearnMode.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/pages/ResultsView.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/pages/TestMode.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/services/api.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/services/speechService.js', LF will be replaced by CRLF the next time Git touches it
+ backend/data/screener_db.json                 | 1464 [32m++++++++++++++++++++++++[m[31m-[m
+ backend/src/config/scoringConfig.js           |   58 [32m+[m[31m-[m
+ backend/src/engine/mlEngineStub.js            |   41 [32m+[m[31m-[m
+ backend/src/engine/scoringEngine.js           |  234 [32m+[m[31m---[m
+ backend/src/routes/childRoutes.js             |   12 [32m+[m[31m-[m
+ backend/src/routes/sessionRoutes.js           |  206 [32m+++[m[31m-[m
+ backend/src/server.js                         |    4 [32m+[m[31m-[m
+ backend/test/e2e.test.js                      |  127 [32m++[m[31m-[m
+ frontend/src/components/ChildModal.jsx        |   55 [32m+[m[31m-[m
+ frontend/src/context/AccessibilityContext.jsx |   19 [32m+[m[31m-[m
+ frontend/src/pages/HandwritingPreview.jsx     |  160 [32m+[m[31m--[m
+ frontend/src/pages/LearnMode.jsx              |  387 [32m++++[m[31m---[m
+ frontend/src/pages/ResultsView.jsx            |  204 [32m+++[m[31m-[m
+ frontend/src/pages/TestMode.jsx               |  360 [32m+++[m[31m---[m
+ frontend/src/services/api.js                  |   59 [32m+[m[31m-[m
+ frontend/src/services/speechService.js        |  101 [32m+[m[31m-[m
+ 16 files changed, 2698 insertions(+), 793 deletions(-)

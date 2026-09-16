@@ -101,14 +101,21 @@ export const api = {
     return handleResponse(res);
   },
 
-  async submitTestSession(childId, rawFeatures) {
+  async getAssessmentQuestions(childId, grade = 'UKG', count = 10) {
+    const res = await fetch(`${API_BASE}/sessions/questions?childId=${encodeURIComponent(childId || '')}&grade=${encodeURIComponent(grade)}&count=${count}`, {
+      headers: { ...getAuthHeader() }
+    });
+    return handleResponse(res);
+  },
+
+  async submitTestSession(childId, payload) {
     const res = await fetch(`${API_BASE}/sessions/test`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         ...getAuthHeader()
       },
-      body: JSON.stringify({ childId, rawFeatures })
+      body: JSON.stringify({ childId, ...payload })
     });
     return handleResponse(res);
   },
@@ -134,7 +141,7 @@ export const api = {
     return handleResponse(res);
   },
 
-  // Phase 2 Canvas Writing Session Stub
+  // Phase 2 Canvas Writing Session & Telemetry
   async submitWritingSession(childId, data) {
     const res = await fetch(`${API_BASE}/sessions/writing`, {
       method: 'POST',
@@ -143,6 +150,52 @@ export const api = {
         ...getAuthHeader()
       },
       body: JSON.stringify({ childId, ...data })
+    });
+    return handleResponse(res);
+  },
+
+  async analyzeHandwriting(strokes, charTarget, canvasBounds, durationSec) {
+    const res = await fetch(`${API_BASE}/sessions/handwriting/analyze`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader()
+      },
+      body: JSON.stringify({ strokes, charTarget, canvasBounds, durationSec })
+    });
+    return handleResponse(res);
+  },
+
+  async analyzeReading(params) {
+    const res = await fetch(`${API_BASE}/sessions/reading/analyze`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader()
+      },
+      body: JSON.stringify(params)
+    });
+    return handleResponse(res);
+  },
+
+  async getScoreComparison(scoreId) {
+    const res = await fetch(`${API_BASE}/sessions/score/${scoreId}/compare`, {
+      headers: { ...getAuthHeader() }
+    });
+    return handleResponse(res);
+  },
+
+  // Level 2 ML Inspection & Prediction
+  async getMLModelInfo() {
+    const res = await fetch(`${API_BASE}/ml/model-info`);
+    return handleResponse(res);
+  },
+
+  async predictMLRisk(featureVector, grade) {
+    const res = await fetch(`${API_BASE}/ml/predict`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ featureVector, grade })
     });
     return handleResponse(res);
   },

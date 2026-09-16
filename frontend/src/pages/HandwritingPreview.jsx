@@ -10,7 +10,10 @@ import {
   ShieldCheck, 
   CheckCircle2,
   Sparkles,
-  Info
+  Info,
+  Activity,
+  Award,
+  TrendingUp
 } from 'lucide-react';
 import { MedicalDisclaimer } from '../components/MedicalDisclaimer';
 
@@ -24,6 +27,7 @@ export function HandwritingPreview() {
   const [currentStroke, setCurrentStroke] = useState([]);
   const [penLifts, setPenLifts] = useState(0);
   const [startTime, setStartTime] = useState(null);
+  const [liveAnalysis, setLiveAnalysis] = useState(null);
   const [savedTelemetry, setSavedTelemetry] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -40,6 +44,7 @@ export function HandwritingPreview() {
 
   const getCanvasCoordinates = (e) => {
     const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0, t: Date.now() };
     const rect = canvas.getBoundingClientRect();
     const clientX = e.clientX || (e.touches && e.touches[0]?.clientX);
     const clientY = e.clientY || (e.touches && e.touches[0]?.clientY);
@@ -59,9 +64,11 @@ export function HandwritingPreview() {
     setCurrentStroke([coords]);
 
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    ctx.beginPath();
-    ctx.moveTo(coords.x, coords.y);
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      ctx.beginPath();
+      ctx.moveTo(coords.x, coords.y);
+    }
   };
 
   const handleDraw = (e) => {
@@ -72,19 +79,37 @@ export function HandwritingPreview() {
     setCurrentStroke(prev => [...prev, coords]);
 
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    ctx.lineTo(coords.x, coords.y);
-    ctx.stroke();
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      ctx.lineTo(coords.x, coords.y);
+      ctx.stroke();
+    }
   };
 
-  const handleEndDrawing = (e) => {
+  const handleEndDrawing = async (e) => {
     if (!isDrawing) return;
     setIsDrawing(false);
     setPenLifts(prev => prev + 1);
 
+    let nextStrokes = strokes;
     if (currentStroke.length > 0) {
-      setStrokes(prev => [...prev, currentStroke]);
+      nextStrokes = [...strokes, currentStroke];
+      setStrokes(nextStrokes);
       setCurrentStroke([]);
+    }
+
+    // Trigger real-time kinematic feature extraction
+    const allPts = nextStrokes.flat();
+    if (allPts.length >= 4) {
+      const durationSec = startTime ? Math.max(1, (Date.now() - startTime) / 1000) : 2;
+      try {
+        const res = await api.analyzeHandwriting(nextStrokes, selectedTarget, { width: 360, height: 260 }, durationSec);
+        if (res?.features) {
+          setLiveAnalysis(res.features);
+        }
+      } catch (err) {
+        console.warn('Real-time analysis error:', err);
+      }
     }
   };
 
@@ -97,15 +122,14 @@ export function HandwritingPreview() {
     setCurrentStroke([]);
     setPenLifts(0);
     setStartTime(null);
+    setLiveAnalysis(null);
     setSavedTelemetry(null);
   };
 
-  const handleTestTelemetrySubmit = async () => {
+  const handleSaveTelemetry = async () => {
     if (!activeChild) return;
     setSubmitting(true);
     const durationSec = startTime ? Math.max(1, Math.round((Date.now() - startTime) / 1000)) : 1;
-    
-    // Flatten stroke points
     const allPoints = strokes.flat();
 
     const telemetryPayload = {
@@ -119,6 +143,7 @@ export function HandwritingPreview() {
     try {
       const res = await api.submitWritingSession(activeChild.id, telemetryPayload);
       setSavedTelemetry(res.writingSession);
+      if (res.features) setLiveAnalysis(res.features);
     } catch (err) {
       console.warn('Writing telemetry save error:', err);
     } finally {
@@ -129,19 +154,19 @@ export function HandwritingPreview() {
   const totalPointsCount = strokes.reduce((acc, s) => acc + s.length, 0);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
       
       {/* Header */}
       <div className="space-y-2">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300 text-xs font-bold">
           <BrainCircuit className="w-3.5 h-3.5 text-purple-600" />
-          <span>Phase 2 Architecture Stub & Extension Point</span>
+          <span>Guided Writing & Kinematic Feature Extractor</span>
         </div>
         <h1 className="text-3xl font-black text-zinc-900 dark:text-zinc-100">
-          Canvas Handwriting & Stroke Tracing Preview
+          Handwriting Tracing & Motor Kinematics Analysis
         </h1>
         <p className="text-xs text-zinc-500 max-w-2xl leading-relaxed">
-          This interactive preview showcases how Phase 2 handwriting telemetry (coordinate time series, pen lifts, stroke acceleration, and bounding boxes) will slot directly into our screening engine.
+          Evaluates fine-motor coordination, velocity consistency, stroke jitter/tremors, and spatial letter formation in real-time.
         </p>
       </div>
 
@@ -158,7 +183,7 @@ export function HandwritingPreview() {
             </span>
             {/* Target Letter Switcher */}
             <div className="flex gap-1">
-              {['b', 'd', 'p', 'q'].map(char => (
+              {['b', 'd', 'p', 'q', 'm', 'w'].map(char => (
                 <button
                   key={char}
                   onClick={() => { setSelectedTarget(char); handleClearCanvas(); }}
@@ -206,87 +231,100 @@ export function HandwritingPreview() {
 
             {activeChild && (
               <button
-                onClick={handleTestTelemetrySubmit}
+                onClick={handleSaveTelemetry}
                 disabled={submitting || totalPointsCount === 0}
                 className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Test Server Telemetry</span>
+                <span>Save Telemetry to Profile</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* Real-Time Telemetry Stream Inspector */}
+        {/* Real-Time Kinematic Analysis Inspector */}
         <div className="p-6 rounded-3xl bg-zinc-900 text-zinc-100 border border-zinc-800 shadow-xl space-y-4 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
               <span className="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
-                <Code className="w-4 h-4" />
-                <span>Extracted Feature Telemetry</span>
+                <Activity className="w-4 h-4" />
+                <span>Kinematic Feature Extractor</span>
               </span>
               <span className="text-[11px] font-mono text-emerald-400">
-                ● Live Streaming
+                ● Sub-Millisecond Analysis
               </span>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 my-4">
-              <div className="p-3 bg-zinc-800/80 rounded-xl">
-                <div className="text-[10px] text-zinc-400 uppercase">Points Logged</div>
-                <div className="text-lg font-black text-white font-mono">{totalPointsCount}</div>
-              </div>
-              <div className="p-3 bg-zinc-800/80 rounded-xl">
-                <div className="text-[10px] text-zinc-400 uppercase">Pen Lifts</div>
-                <div className="text-lg font-black text-white font-mono">{penLifts}</div>
-              </div>
-              <div className="p-3 bg-zinc-800/80 rounded-xl">
-                <div className="text-[10px] text-zinc-400 uppercase">Target</div>
-                <div className="text-lg font-black text-purple-400 font-mono">'{selectedTarget}'</div>
-              </div>
-            </div>
-
-            {/* Live Point Samples */}
-            <div className="space-y-1">
-              <div className="text-[10px] uppercase font-bold text-zinc-400">
-                Latest Coordinate Stream (x, y, timestamp):
-              </div>
-              <div className="h-32 overflow-y-auto bg-black/40 rounded-xl p-3 font-mono text-[11px] text-zinc-300 space-y-0.5">
-                {strokes.length > 0 ? (
-                  strokes.flatMap(s => s).slice(-10).map((pt, i) => (
-                    <div key={i} className="text-zinc-400">
-                      [Point #{i + 1}] x: <span className="text-indigo-300">{pt.x}</span>, y: <span className="text-indigo-300">{pt.y}</span>, t: <span className="text-zinc-500">{pt.t}</span>
+            {liveAnalysis ? (
+              <div className="space-y-4 my-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-3 bg-zinc-800/80 rounded-xl">
+                    <div className="text-[10px] text-zinc-400 uppercase">Consistency Index</div>
+                    <div className="text-2xl font-black text-emerald-400 font-mono">
+                      {liveAnalysis.strokeConsistencyScore} / 100
                     </div>
-                  ))
-                ) : (
-                  <span className="text-zinc-600 italic">Draw on the canvas above to inspect live coordinate telemetry...</span>
-                )}
+                  </div>
+                  <div className="p-3 bg-zinc-800/80 rounded-xl">
+                    <div className="text-[10px] text-zinc-400 uppercase">Motor Risk Score</div>
+                    <div className="text-2xl font-black text-amber-400 font-mono">
+                      {liveAnalysis.handwritingRiskScore} / 100
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 text-center text-xs font-mono">
+                  <div className="p-2 bg-zinc-800/50 rounded-lg">
+                    <div className="text-[10px] text-zinc-400">Jitter Index</div>
+                    <div className="font-bold text-white">{liveAnalysis.directionalJitterIndex}</div>
+                  </div>
+                  <div className="p-2 bg-zinc-800/50 rounded-lg">
+                    <div className="text-[10px] text-zinc-400">Velocity CV</div>
+                    <div className="font-bold text-white">{liveAnalysis.velocityVariationCV}</div>
+                  </div>
+                  <div className="p-2 bg-zinc-800/50 rounded-lg">
+                    <div className="text-[10px] text-zinc-400">Pen Lifts</div>
+                    <div className="font-bold text-white">{liveAnalysis.penLifts}</div>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-zinc-800/40 rounded-xl text-xs space-y-1">
+                  <div className="text-[10px] uppercase font-bold text-zinc-400">Spatial Geometry:</div>
+                  <p className="text-zinc-300 font-mono text-[11px]">
+                    {liveAnalysis.spatial?.orientationNotes || 'Normal spatial orientation'}
+                  </p>
+                  {liveAnalysis.spatial?.isSuspectedReversal && (
+                    <div className="text-rose-400 font-bold text-[11px]">
+                      ⚠ Mirror reversal detected for '{selectedTarget}'!
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="p-8 text-center text-zinc-500 text-xs my-4 bg-zinc-800/30 rounded-2xl border border-dashed border-zinc-800">
+                <PenTool className="w-8 h-8 mx-auto mb-2 text-zinc-600" />
+                <span>Draw on the canvas to inspect real-time stroke velocity, jitter, pen lifts, and spatial metrics.</span>
+              </div>
+            )}
           </div>
 
           {savedTelemetry && (
             <div className="p-3 bg-emerald-950/60 border border-emerald-800 rounded-xl text-xs text-emerald-300 font-mono">
-              ✓ Telemetry saved to backend (Session ID: {savedTelemetry.id})
+              ✓ Telemetry saved to database (Session ID: {savedTelemetry.id})
             </div>
           )}
         </div>
 
       </div>
 
-      {/* Phase 2 Architecture Specification */}
+      {/* Guided Writing Module Explanation */}
       <div className="p-6 rounded-3xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 space-y-3">
         <h3 className="font-bold text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
           <Layers className="w-5 h-5 text-indigo-600" />
-          <span>Phase 2 Architecture & Data Model Integration Plan</span>
+          <span>Multimodal Motor Feature Integration</span>
         </h3>
         <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-          The backend database and session routers already feature dedicated schemas for <code>writingSessions</code> and <code>mlRiskPredictions</code>. In Phase 2:
+          The kinematic telemetry captured on this canvas is processed directly by <code>backend/src/engine/handwritingFeatureExtractor.js</code> and fused into the Level 1 and Level 2 ML scoring engines alongside oral reading fluency and letter reversal tests.
         </p>
-        <ul className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400 pl-4 list-disc">
-          <li><strong>Stroke Dynamics:</strong> Jerk/acceleration variance and pen-lift count will detect motor dysgraphia tendencies.</li>
-          <li><strong>Orientation Ratio:</strong> Bounding box height-to-width and loop placement will mathematically distinguish 'b' from 'd'.</li>
-          <li><strong>Level 2 ML Integration:</strong> Feature vectors will feed into our trained Logistic Regression / Decision Tree ensemble model alongside speech and flashcard features.</li>
-        </ul>
       </div>
 
     </div>

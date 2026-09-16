@@ -24,7 +24,13 @@ export function AccessibilityProvider({ children }) {
   const [letterSpacing, setLetterSpacing] = useState(() => localStorage.getItem('lexi_letter_spacing') || '0.04em');
   const [wordSpacing, setWordSpacing] = useState(() => localStorage.getItem('lexi_word_spacing') || '0.12em');
   const [lineHeight, setLineHeight] = useState(() => Number(localStorage.getItem('lexi_line_height')) || 1.65);
-  const [speechRate, setSpeechRate] = useState(() => Number(localStorage.getItem('lexi_speech_rate')) || 0.9);
+  
+  // Voice Persona: 'kavi' (Indian Male) or 'kavita' (Indian Female)
+  const [voicePersona, setVoicePersona] = useState(() => localStorage.getItem('lexi_voice_persona') || 'kavi');
+  // Voice Speed: 'slow' (0.85), 'normal' (1.0), 'fast' (1.15)
+  const [voiceSpeed, setVoiceSpeed] = useState(() => localStorage.getItem('lexi_voice_speed') || 'slow');
+  const [speechRate, setSpeechRate] = useState(() => Number(localStorage.getItem('lexi_speech_rate')) || 0.88);
+
   const [rulerActive, setRulerActive] = useState(() => localStorage.getItem('lexi_ruler') === 'true');
   const [rulerY, setRulerY] = useState(250);
 
@@ -49,9 +55,11 @@ export function AccessibilityProvider({ children }) {
     localStorage.setItem('lexi_letter_spacing', letterSpacing);
     localStorage.setItem('lexi_word_spacing', wordSpacing);
     localStorage.setItem('lexi_line_height', String(lineHeight));
+    localStorage.setItem('lexi_voice_persona', voicePersona);
+    localStorage.setItem('lexi_voice_speed', voiceSpeed);
     localStorage.setItem('lexi_speech_rate', String(speechRate));
     localStorage.setItem('lexi_ruler', String(rulerActive));
-  }, [font, theme, fontSize, letterSpacing, wordSpacing, lineHeight, speechRate, rulerActive]);
+  }, [font, theme, fontSize, letterSpacing, wordSpacing, lineHeight, voicePersona, voiceSpeed, speechRate, rulerActive]);
 
   // Mouse move tracker for reading ruler
   useEffect(() => {
@@ -68,7 +76,9 @@ export function AccessibilityProvider({ children }) {
     setLetterSpacing('0.04em');
     setWordSpacing('0.12em');
     setLineHeight(1.65);
-    setSpeechRate(0.9);
+    setVoicePersona('kavi');
+    setVoiceSpeed('slow');
+    setSpeechRate(0.88);
     setRulerActive(false);
   };
 
@@ -80,6 +90,8 @@ export function AccessibilityProvider({ children }) {
       letterSpacing, setLetterSpacing,
       wordSpacing, setWordSpacing,
       lineHeight, setLineHeight,
+      voicePersona, setVoicePersona,
+      voiceSpeed, setVoiceSpeed,
       speechRate, setSpeechRate,
       rulerActive, setRulerActive,
       resetToDefaults,
@@ -103,3 +115,4 @@ export function useAccessibility() {
   if (!ctx) throw new Error('useAccessibility must be used within an AccessibilityProvider');
   return ctx;
 }
+

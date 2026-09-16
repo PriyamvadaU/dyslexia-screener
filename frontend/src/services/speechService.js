@@ -1,6 +1,7 @@
 /**
  * Web Speech API Service Wrapper
  * Provides Speech-to-Text (STT) assessment capture and Text-to-Speech (TTS) read-along synchronization.
+ * Includes Indian English Voice Personas: 'Kavi' (Male) & 'Kavita' (Female).
  */
 
 // Check browser STT support
@@ -14,6 +15,70 @@ export function isSpeechRecognitionSupported() {
 // Check browser TTS support
 export function isSpeechSynthesisSupported() {
   return typeof window !== 'undefined' && 'speechSynthesis' in window;
+}
+
+/**
+ * Resolves available voices and finds the best matching Indian English voice
+ * Persona: 'kavi' (Male) or 'kavita' (Female)
+ */
+export function getIndianEnglishVoice(persona = 'kavi') {
+  if (!isSpeechSynthesisSupported()) return null;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices || voices.length === 0) return null;
+
+  const isMale = persona.toLowerCase() === 'kavi';
+
+  // 1. First priority: Exact en-IN voices with matching gender
+  const inVoices = voices.filter(v => v.lang === 'en-IN' || v.lang.startsWith('en_IN') || v.lang.includes('IN'));
+  
+  if (inVoices.length > 0) {
+    if (isMale) {
+      const maleIn = inVoices.find(v => 
+        v.name.toLowerCase().includes('male') || 
+        v.name.toLowerCase().includes('rishi') || 
+        v.name.toLowerCase().includes('prabhat') ||
+        v.name.toLowerCase().includes('kavi') ||
+        v.name.toLowerCase().includes('george')
+      );
+      if (maleIn) return maleIn;
+      return inVoices[0];
+    } else {
+      const femaleIn = inVoices.find(v => 
+        v.name.toLowerCase().includes('female') || 
+        v.name.toLowerCase().includes('veena') || 
+        v.name.toLowerCase().includes('neerja') ||
+        v.name.toLowerCase().includes('kavita') ||
+        v.name.toLowerCase().includes('priya') ||
+        v.name.toLowerCase().includes('zira')
+      );
+      if (femaleIn) return femaleIn;
+      return inVoices[0];
+    }
+  }
+
+  // 2. Second priority: Any clear English natural voice
+  const generalEnglish = voices.filter(v => v.lang.startsWith('en'));
+  if (generalEnglish.length > 0) {
+    if (isMale) {
+      const maleVoice = generalEnglish.find(v => 
+        v.name.toLowerCase().includes('male') || 
+        v.name.toLowerCase().includes('david') || 
+        v.name.toLowerCase().includes('guy') || 
+        v.name.toLowerCase().includes('natural')
+      );
+      return maleVoice || generalEnglish[0];
+    } else {
+      const femaleVoice = generalEnglish.find(v => 
+        v.name.toLowerCase().includes('female') || 
+        v.name.toLowerCase().includes('samantha') || 
+        v.name.toLowerCase().includes('zira') || 
+        v.name.toLowerCase().includes('jenny')
+      );
+      return femaleVoice || generalEnglish[0];
+    }
+  }
+
+  return voices[0] || null;
 }
 
 export class SpeechAssessmentTracker {
@@ -46,7 +111,7 @@ export class SpeechAssessmentTracker {
     this.recognition = new SpeechRecognition();
     this.recognition.continuous = true;
     this.recognition.interimResults = true;
-    this.recognition.lang = 'en-US';
+    this.recognition.lang = 'en-IN'; // Indian English locale preference
 
     this.isRecording = true;
     this.startTime = Date.now();
@@ -106,7 +171,6 @@ export class SpeechAssessmentTracker {
 
     this.recognition.onend = () => {
       if (this.isRecording) {
-        // Auto-restart if stopped unexpectedly while active
         try {
           this.recognition.start();
         } catch (e) {
@@ -169,9 +233,19 @@ export class SpeechAssessmentTracker {
 }
 
 /**
- * Text-to-Speech Synchronizer for Read-Along
+ * Text-to-Speech Player with Indian English Voice support (Kavi / Kavita)
+ * Speed modes: 'slow' (0.85), 'normal' (1.0), 'fast' (1.15) or direct numeric rate
  */
-export function playReadAlongText({ text, rate = 0.9, onWordBoundary, onStart, onEnd, onError }) {
+export function playReadAlongText({ 
+  text, 
+  rate = 0.88, 
+  persona = 'kavi', 
+  pitch = 1.0,
+  onWordBoundary, 
+  onStart, 
+  onEnd, 
+  onError 
+}) {
   if (!isSpeechSynthesisSupported()) {
     if (onError) onError(new Error('Speech synthesis is not supported in this browser.'));
     return null;
@@ -179,15 +253,16 @@ export function playReadAlongText({ text, rate = 0.9, onWordBoundary, onStart, o
 
   window.speechSynthesis.cancel(); // Stop any pending speech
 
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = Math.max(0.5, Math.min(2.0, rate));
-  utterance.pitch = 1.0;
-  utterance.lang = 'en-US';
+  let actualRate = typeof rate === 'number' ? rate : (rate === 'slow' ? 0.85 : rate === 'fast' ? 1.15 : 1.0);
+  actualRate = Math.max(0.5, Math.min(1.8, actualRate));
 
-  // Attempt to select a clear natural English voice
-  const voices = window.speechSynthesis.getVoices();
-  const naturalVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Jenny')));
-  if (naturalVoice) utterance.voice = naturalVoice;
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = actualRate;
+  utterance.pitch = persona === 'kavita' ? Math.max(pitch, 1.05) : pitch;
+  utterance.lang = 'en-IN';
+
+  const voice = getIndianEnglishVoice(persona);
+  if (voice) utterance.voice = voice;
 
   if (onStart) utterance.onstart = onStart;
   if (onEnd) utterance.onend = onEnd;
@@ -196,8 +271,7 @@ export function playReadAlongText({ text, rate = 0.9, onWordBoundary, onStart, o
   if (onWordBoundary) {
     utterance.onboundary = (event) => {
       if (event.name === 'word') {
-        const charIndex = event.charIndex;
-        onWordBoundary(charIndex);
+        onWordBoundary(event.charIndex);
       }
     };
   }
@@ -211,3 +285,4 @@ export function stopSpeechSynthesis() {
     window.speechSynthesis.cancel();
   }
 }
+

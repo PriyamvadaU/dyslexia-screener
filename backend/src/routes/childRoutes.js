@@ -39,9 +39,13 @@ childRouter.post('/', (req, res) => {
     const parentId = req.user.id;
     const { name, age, grade, notes, consentConfirmed, signatureName } = req.body;
 
-    if (!name || !age || !grade) {
-      return res.status(400).json({ error: 'Child name/pseudonym, age, and grade are required.' });
+    if (!name || age === undefined || !grade) {
+      return res.status(400).json({ error: 'Child name/pseudonym, age, and standard/grade are required.' });
     }
+
+    const validGrades = ['UKG', '1', '2', '3'];
+    const sanitizedGrade = String(grade).toUpperCase().replace(/GRADE\s*/i, '').trim();
+    const finalGrade = validGrades.includes(sanitizedGrade) ? sanitizedGrade : (sanitizedGrade === 'K' ? 'UKG' : 'UKG');
 
     if (!consentConfirmed) {
       return res.status(400).json({
@@ -57,8 +61,8 @@ childRouter.post('/', (req, res) => {
       id: childId,
       parentId,
       name: name.trim(),
-      age: Number(age),
-      grade: String(grade).trim(),
+      age: Math.max(4, Math.min(12, Number(age) || 6)),
+      grade: finalGrade,
       notes: notes ? notes.trim() : '',
       consentConfirmed: true,
       consentDate: now,

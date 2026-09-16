@@ -5,6 +5,7 @@ import { authRouter } from './routes/authRoutes.js';
 import { childRouter } from './routes/childRoutes.js';
 import { sessionRouter } from './routes/sessionRoutes.js';
 import { configRouter } from './routes/configRoutes.js';
+import { mlRouter } from './routes/mlRoutes.js';
 
 dotenv.config();
 
@@ -25,7 +26,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'online',
     system: 'LexiScreen Multimodal Screening Engine',
-    version: '1.0.0',
+    version: '2.1.0',
     disclaimer: 'Preliminary screening indicator only, not a medical diagnosis.',
     timestamp: new Date().toISOString()
   });
@@ -36,6 +37,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/children', childRouter);
 app.use('/api/sessions', sessionRouter);
 app.use('/api/config', configRouter);
+app.use('/api/ml', mlRouter);
 
 import path from 'path';
 import fs from 'fs';

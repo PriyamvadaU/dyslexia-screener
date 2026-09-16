@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChild } from '../context/ChildContext';
+import { useAccessibility } from '../context/AccessibilityContext';
 import { api } from '../services/api';
 import { 
   SpeechAssessmentTracker, 
-  isSpeechRecognitionSupported 
+  isSpeechRecognitionSupported, 
+  playReadAlongText, 
+  stopSpeechSynthesis 
 } from '../services/speechService';
 import confetti from 'canvas-confetti';
 import { 
@@ -19,97 +22,37 @@ import {
   ArrowRight, 
   Play, 
   Square,
-  ShieldCheck
+  ShieldCheck,
+  PenTool,
+  RotateCcw,
+  Activity,
+  Layers,
+  Volume2
 } from 'lucide-react';
 import { MedicalDisclaimer } from '../components/MedicalDisclaimer';
 
-// 8 Timed Flashcard Prompts
-const TEST_FLASHCARDS = [
-  {
-    id: 't1',
-    prompt: "Which one is the letter 'b' (as in 'ball')?",
-    target: 'b',
-    options: ['d', 'b', 'p', 'q'],
-    isReversalTest: true,
-    reversalOption: 'd'
-  },
-  {
-    id: 't2',
-    prompt: "Which letter makes the 'duh' sound (as in 'dog')?",
-    target: 'd',
-    options: ['b', 'p', 'd', 'q'],
-    isReversalTest: true,
-    reversalOption: 'b'
-  },
-  {
-    id: 't3',
-    prompt: "Which letter is 'p' (with the tail hanging down)?",
-    target: 'p',
-    options: ['q', 'b', 'd', 'p'],
-    isReversalTest: true,
-    reversalOption: 'q'
-  },
-  {
-    id: 't4',
-    prompt: "Which letter is 'q' (as in 'queen')?",
-    target: 'q',
-    options: ['p', 'q', 'b', 'd'],
-    isReversalTest: true,
-    reversalOption: 'p'
-  },
-  {
-    id: 't5',
-    prompt: "Which letter is 'm' (two peaks pointing UP)?",
-    target: 'm',
-    options: ['w', 'm', 'n', 'u'],
-    isReversalTest: true,
-    reversalOption: 'w'
-  },
-  {
-    id: 't6',
-    prompt: "Which letter is 'w' (waves splashing DOWN)?",
-    target: 'w',
-    options: ['m', 'n', 'u', 'w'],
-    isReversalTest: true,
-    reversalOption: 'm'
-  },
-  {
-    id: 't7',
-    prompt: "Select the letter 'n' (arch on top):",
-    target: 'n',
-    options: ['u', 'n', 'm', 'h'],
-    isReversalTest: true,
-    reversalOption: 'u'
-  },
-  {
-    id: 't8',
-    prompt: "Which one is 'b' (bat before the ball)?",
-    target: 'b',
-    options: ['d', 'p', 'b', 'q'],
-    isReversalTest: true,
-    reversalOption: 'd'
-  }
-];
-
 const TEST_PASSAGES = {
-  'K': "A big red dog can run. The dog has a wet ball. Look at him go fast.",
-  '1': "The friendly brown puppy saw a little bird. The bird was singing on a branch in the green park.",
-  '2': "Sam and Ben built a tall wooden boat. They painted bright blue stripes along the sides. The boat sailed smoothly across the calm lake under the warm sunshine.",
-  '3': "Deep inside the quiet forest, a quick fox found a hidden basket of fresh apples near a bubbling stream. She jumped over the mossy rocks with delight.",
-  'default': "Sam and Ben built a tall wooden boat. They painted bright blue stripes along the sides. The boat sailed smoothly across the calm lake under the warm sunshine."
+  'UKG': "Look at the red ball. The puppy runs fast. The sun is warm and bright.",
+  '1': "The friendly puppy saw a little bird. The bird was singing on a branch in the green park.",
+  '2': "Sam and Ben built a bright wooden boat. They painted blue stripes along the sides. The boat sailed smoothly across the calm lake.",
+  '3': "Deep inside the quiet forest, a quick fox found a hidden basket of fresh apples near a stream. She jumped over the mossy rocks.",
+  'default': "Look at the red ball. The puppy runs fast. The sun is warm and bright."
 };
 
 export function TestMode({ onOpenChildModal }) {
   const { activeChild } = useChild();
+  const { voicePersona, voiceSpeed } = useAccessibility();
   const navigate = useNavigate();
 
-  // Test Phase: 'flashcards' | 'speech' | 'submitting'
-  const [phase, setPhase] = useState('flashcards');
+  // Test Phase: 'questions' | 'speech' | 'submitting'
+  const [phase, setPhase] = useState('questions');
+  const [questions, setQuestions] = useState([]);
+  const [loadingQuestions, setLoadingQuestions] = useState(true);
 
-  // Section 1: Flashcards State
-  const [cardIdx, setCardIdx] = useState(0);
-  const [cardStartTime, setCardStartTime] = useState(Date.now());
-  const [flashcardResults, setFlashcardResults] = useState([]);
+  // Section 1: Questions State
+  const [qIdx, setQIdx] = useState(0);
+  const [qStartTime, setQStartTime] = useState(Date.now());
+  const [questionResults, setQuestionResults] = useState([]);
   const [reversalErrors, setReversalErrors] = useState(0);
   const [confusedPairs, setConfusedPairs] = useState({});
 
@@ -121,17 +64,43 @@ export function TestMode({ onOpenChildModal }) {
   const speechTrackerRef = useRef(null);
   const timerIntervalRef = useRef(null);
 
-  const gradeKey = activeChild?.grade || '2';
+  const gradeKey = activeChild?.grade === 'K' ? 'UKG' : (activeChild?.grade || 'UKG');
   const targetPassage = TEST_PASSAGES[gradeKey] || TEST_PASSAGES['default'];
 
-  // Start card timer on cardIdx change
+  // Fetch assessment questions from backend
   useEffect(() => {
-    setCardStartTime(Date.now());
-  }, [cardIdx]);
+    async function loadQuestions() {
+      if (!activeChild?.id) return;
+      try {
+        setLoadingQuestions(true);
+        const res = await api.getAssessmentQuestions(activeChild.id, gradeKey, 10);
+        if (res.questions && res.questions.length > 0) {
+          setQuestions(res.questions);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch questions from backend, using fallback:', err);
+      } finally {
+        setLoadingQuestions(false);
+      }
+    }
+    loadQuestions();
+  }, [activeChild?.id, gradeKey]);
+
+  // Start question timer on qIdx change and autoplay prompt audio if sound question
+  useEffect(() => {
+    setQStartTime(Date.now());
+    if (questions.length > 0 && qIdx < questions.length) {
+      const curQ = questions[qIdx];
+      if (curQ.type === 'sound_to_picture') {
+        playAudio(curQ.audioText);
+      }
+    }
+  }, [qIdx, questions]);
 
   // Clean up speech on unmount
   useEffect(() => {
     return () => {
+      stopSpeechSynthesis();
       if (speechTrackerRef.current) {
         speechTrackerRef.current.stop();
       }
@@ -140,6 +109,15 @@ export function TestMode({ onOpenChildModal }) {
       }
     };
   }, []);
+
+  const playAudio = (text) => {
+    stopSpeechSynthesis();
+    playReadAlongText({
+      text,
+      persona: voicePersona,
+      rate: voiceSpeed === 'slow' ? 0.85 : voiceSpeed === 'fast' ? 1.15 : 1.0
+    });
+  };
 
   if (!activeChild) {
     return (
@@ -161,21 +139,21 @@ export function TestMode({ onOpenChildModal }) {
     );
   }
 
-  // Handle Flashcard Option Click
-  const handleSelectOption = (selected) => {
-    const current = TEST_FLASHCARDS[cardIdx];
-    const reactionTimeMs = Date.now() - cardStartTime;
-    const isCorrect = selected === current.target;
-    const isReversalConfusion = current.isReversalTest && selected === current.reversalOption;
+  // Handle Option Click
+  const handleSelectOption = (selectedOption) => {
+    const current = questions[qIdx];
+    const reactionTimeMs = Date.now() - qStartTime;
+    const isCorrect = selectedOption.id === current.correctOptionId;
+    const isReversalConfusion = current.isReversalTest && selectedOption.id === current.reversalOption;
 
     if (isReversalConfusion) {
       setReversalErrors(prev => prev + 1);
-      const pairKey = `${current.target}→${selected}`;
+      const pairKey = `${current.correctOptionId}→${selectedOption.id}`;
       setConfusedPairs(prev => ({
         ...prev,
         [pairKey]: {
-          expected: current.target,
-          actual: selected,
+          expected: current.correctOptionId,
+          actual: selectedOption.id,
           count: (prev[pairKey]?.count || 0) + 1
         }
       }));
@@ -183,20 +161,23 @@ export function TestMode({ onOpenChildModal }) {
 
     const cardResult = {
       cardId: current.id,
-      target: current.target,
-      selected,
+      category: current.category,
+      target: current.correctOptionId,
+      selected: selectedOption.id,
       isCorrect,
       isReversalConfusion,
+      isReversalTest: Boolean(current.isReversalTest),
+      reversalOption: current.reversalOption || null,
       reactionTimeMs
     };
 
-    const nextResults = [...flashcardResults, cardResult];
-    setFlashcardResults(nextResults);
+    const nextResults = [...questionResults, cardResult];
+    setQuestionResults(nextResults);
 
-    if (cardIdx + 1 < TEST_FLASHCARDS.length) {
-      setCardIdx(cardIdx + 1);
+    if (qIdx + 1 < questions.length) {
+      setQIdx(qIdx + 1);
     } else {
-      // Completed Flashcard section -> Advance to Speech Assessment
+      // Completed Section 1 -> Advance to Oral Reading
       confetti({ particleCount: 40, spread: 50 });
       setPhase('speech');
     }
@@ -218,7 +199,7 @@ export function TestMode({ onOpenChildModal }) {
       onFinalTranscript: (text) => setTranscript(text),
       onError: (err) => {
         console.warn('Speech error:', err);
-        setSpeechError('Microphone audio issue detected. You can complete the test or type below.');
+        setSpeechError('Microphone audio issue detected. You can complete the test or submit.');
       },
       onEnd: () => {
         setIsRecording(false);
@@ -236,7 +217,7 @@ export function TestMode({ onOpenChildModal }) {
     }
   };
 
-  // Stop Speech & Submit to Backend Scoring Engine
+  // Stop Speech & Submit to Multimodal Backend Scoring Engine
   const handleStopAndSubmit = async () => {
     let metrics = {
       durationSec: Math.max(5, speechTimer),
@@ -269,12 +250,22 @@ export function TestMode({ onOpenChildModal }) {
     const readingTotalWords = targetWords.length;
 
     // 2. Aggregate flashcard metrics
-    const flashcardTotal = flashcardResults.length;
-    const flashcardCorrect = flashcardResults.filter(r => r.isCorrect).length;
-    const reversalAttempts = flashcardResults.filter(r => r.isReversalConfusion !== undefined).length;
-    const avgCardReactionTime = flashcardResults.reduce((acc, r) => acc + r.reactionTimeMs, 0) / (flashcardTotal || 1);
+    const flashcardTotal = questionResults.length;
+    const flashcardCorrect = questionResults.filter(r => r.isCorrect).length;
+    const reversalAttempts = questionResults.filter(r => r.isReversalTest).length;
+    const avgCardReactionTime = flashcardResultsSum(questionResults) / (flashcardTotal || 1);
 
-    // 3. Compile Raw Feature Vector for Server-Side Scoring Engine
+    // 3. Compile Reading Telemetry Payload
+    const readingPayload = {
+      transcript: metrics.transcript || transcript,
+      targetPassage,
+      durationSec: metrics.durationSec,
+      pauseCount: metrics.pauseCount,
+      totalPauseDurationMs: metrics.totalPauseDurationMs,
+      averageHesitationMs: Math.round((metrics.averageHesitationMs + avgCardReactionTime) / 2)
+    };
+
+    // 4. Compile Raw Feature Vector for Server-Side Scoring Engine
     const rawFeatures = {
       flashcardTotal,
       flashcardCorrect,
@@ -287,40 +278,49 @@ export function TestMode({ onOpenChildModal }) {
       pauseCount: metrics.pauseCount,
       totalPauseDurationMs: metrics.totalPauseDurationMs,
       averageHesitationMs: Math.round((metrics.averageHesitationMs + avgCardReactionTime) / 2),
-      transcript: metrics.transcript || transcript
+      transcript: metrics.transcript || transcript,
+      targetPassage
     };
 
     try {
-      const response = await api.submitTestSession(activeChild.id, rawFeatures);
+      const response = await api.submitTestSession(activeChild.id, {
+        rawFeatures,
+        readingTelemetry: readingPayload,
+        flashcardResults: questionResults
+      });
       confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
       navigate(`/results/${response.score.id}`);
     } catch (err) {
       console.error('Submission failed:', err);
-      setSpeechError(err.message || 'Failed to submit assessment to scoring engine.');
+      setSpeechError(err.message || 'Failed to submit screening assessment.');
       setPhase('speech');
     }
   };
 
-  const currentCard = TEST_FLASHCARDS[cardIdx];
+  function flashcardResultsSum(resList) {
+    return resList.reduce((acc, r) => acc + (r.reactionTimeMs || 0), 0);
+  }
+
+  const currentQ = questions[qIdx];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+    <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8 space-y-6">
       
       {/* Top Banner: Test Mode (Assessment Badge) */}
-      <div className="rounded-2xl bg-indigo-600 text-white p-4 sm:p-5 shadow-lg flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-white/10 rounded-xl">
-            <ClipboardCheck className="w-6 h-6 text-amber-300" />
+      <div className="rounded-3xl bg-indigo-600 text-white p-5 sm:p-6 shadow-xl flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="p-3 bg-white/10 rounded-2xl">
+            <ClipboardCheck className="w-7 h-7 text-amber-300" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-black text-lg tracking-tight uppercase">Test Window</span>
-              <span className="px-2 py-0.5 rounded-full bg-amber-400 text-indigo-950 text-[10px] font-bold">
-                Graded & Timed Assessment
+              <span className="font-black text-xl tracking-tight uppercase">Screening Assessment</span>
+              <span className="px-2.5 py-0.5 rounded-full bg-amber-400 text-indigo-950 text-[10px] font-bold">
+                UKG–Grade 3 Picture & Sound
               </span>
             </div>
-            <p className="text-xs text-indigo-100 font-medium">
-              Screening Student: <strong>{activeChild.name}</strong> (Grade {activeChild.grade})
+            <p className="text-xs text-indigo-100 font-medium mt-0.5">
+              Screening Student: <strong>{activeChild.name}</strong> • Standard: <strong>{gradeKey}</strong>
             </p>
           </div>
         </div>
@@ -331,60 +331,105 @@ export function TestMode({ onOpenChildModal }) {
         </div>
       </div>
 
-      {/* Progress Indicator */}
-      <div className="flex items-center justify-between text-xs font-bold text-zinc-500 dark:text-zinc-400 px-1">
-        <span>Step 1: Visual & Reversal Cards ({flashcardResults.length}/{TEST_FLASHCARDS.length})</span>
-        <span>Step 2: Oral Speech Read-Aloud</span>
+      {/* 2-Step Progress Indicator */}
+      <div className="grid grid-cols-2 gap-3 text-center text-xs font-bold text-zinc-500 dark:text-zinc-400">
+        <div className={`p-3 rounded-2xl border transition-all ${phase === 'questions' ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-500 text-indigo-600 dark:text-indigo-300 shadow-sm' : 'border-zinc-200 dark:border-zinc-700'}`}>
+          1. Picture & Sound Questions ({questionResults.length}/{questions.length || 10})
+        </div>
+        <div className={`p-3 rounded-2xl border transition-all ${phase === 'speech' ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-500 text-indigo-600 dark:text-indigo-300 shadow-sm' : 'border-zinc-200 dark:border-zinc-700'}`}>
+          2. Voice & Oral Reading Fluency
+        </div>
       </div>
 
-      {/* SECTION 1: FLASHCARDS TEST */}
-      {phase === 'flashcards' && (
+      {/* SECTION 1: PICTURE & SOUND QUESTIONS */}
+      {phase === 'questions' && (
         <div className="space-y-6 animate-in fade-in">
-          <div className="text-center space-y-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
-              Question {cardIdx + 1} of {TEST_FLASHCARDS.length}
-            </span>
-            <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-100">
-              {currentCard.prompt}
-            </h2>
-            <p className="text-xs text-zinc-500">Tap the correct letter below as accurately and smoothly as you can.</p>
-          </div>
+          {loadingQuestions || !currentQ ? (
+            <div className="p-12 text-center space-y-3 bg-white dark:bg-zinc-800 rounded-3xl border border-zinc-200">
+              <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <p className="text-xs font-semibold text-zinc-500">Preparing randomized screening question set...</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Question Header & Audio Trigger */}
+              <div className="text-center space-y-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
+                  Question {qIdx + 1} of {questions.length} • {currentQ.category}
+                </span>
 
-          {/* 4 Option Buttons */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl mx-auto pt-4">
-            {currentCard.options.map((opt, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleSelectOption(opt)}
-                className="p-8 rounded-3xl bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 hover:border-indigo-600 dark:hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 text-5xl font-black text-zinc-900 dark:text-zinc-100 font-lexend shadow-lg hover:shadow-xl transition-all duration-150 transform hover:scale-105 active:scale-95 flex items-center justify-center min-h-[140px]"
-              >
-                {opt}
-              </button>
-            ))}
-          </div>
+                <h2 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100">
+                  {currentQ.promptText}
+                </h2>
 
-          <div className="text-center text-xs text-zinc-400 pt-4">
-            Reaction time and spatial letter orientation are being recorded.
-          </div>
+                {/* Big Audio Play Button for Sound Questions */}
+                {currentQ.audioText && (
+                  <div className="pt-2">
+                    <button
+                      onClick={() => playAudio(currentQ.audioText)}
+                      className="px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-amber-950 font-black text-sm shadow-md hover:shadow-lg transition-all inline-flex items-center gap-2 transform hover:scale-105 active:scale-95"
+                    >
+                      <Volume2 className="w-5 h-5" />
+                      <span>Play / Replay Sound ({voicePersona === 'kavi' ? 'Kavi' : 'Kavita'})</span>
+                    </button>
+                  </div>
+                )}
+                
+                <p className="text-xs text-zinc-400">
+                  Tap the matching picture below.
+                </p>
+              </div>
+
+              {/* 4 Visual Picture Option Cards (Target Text is NEVER shown to spoil the answer) */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl mx-auto pt-2">
+                {currentQ.options.map((opt) => (
+                  <button
+                    key={opt.id}
+                    onClick={() => handleSelectOption(opt)}
+                    className="p-6 rounded-3xl bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 hover:border-indigo-600 dark:hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 shadow-lg hover:shadow-xl transition-all duration-150 transform hover:scale-105 active:scale-95 flex flex-col items-center justify-center min-h-[150px] gap-2 text-center group"
+                  >
+                    {opt.emoji && (
+                      <span className="text-6xl select-none group-hover:scale-110 transition-transform">
+                        {opt.emoji}
+                      </span>
+                    )}
+                    {opt.colorHex && (
+                      <div 
+                        className="w-16 h-16 rounded-2xl shadow-inner border border-black/10 group-hover:scale-110 transition-transform" 
+                        style={{ backgroundColor: opt.colorHex }}
+                      />
+                    )}
+                    {opt.letter && (
+                      <span className="text-5xl font-black font-lexend text-zinc-900 dark:text-zinc-100">
+                        {opt.letter}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              <div className="text-center text-xs text-zinc-400 pt-2">
+                Reaction time and spatial orientation are being measured automatically.
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* SECTION 2: ORAL SPEECH READ-ALOUD TEST */}
+      {/* SECTION 2: ORAL READING FLUENCY TEST */}
       {phase === 'speech' && (
         <div className="space-y-6 animate-in fade-in">
           <div className="text-center space-y-1">
             <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
-              Section 2: Speech & Fluency Assessment
+              Step 2 • Oral Reading Fluency
             </span>
             <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-100">
               Read the Passage Aloud into the Microphone
             </h2>
             <p className="text-xs text-zinc-500">
-              Press "Start Speaking" and have the child read the text at their natural pace.
+              Press "Start Speaking" and have the child read at their natural pace.
             </p>
           </div>
 
-          {/* Reading Target Passage Card */}
           <div className="p-8 sm:p-10 rounded-3xl bg-white dark:bg-zinc-800 border-2 border-indigo-200 dark:border-zinc-700 shadow-xl space-y-6">
             <div className="text-xl sm:text-2xl leading-loose font-medium text-zinc-900 dark:text-zinc-100 text-center select-none font-lexend">
               "{targetPassage}"
@@ -445,7 +490,7 @@ export function TestMode({ onOpenChildModal }) {
           <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
           <h3 className="text-lg font-bold">Computing Screening Risk Analysis...</h3>
           <p className="text-xs text-zinc-500">
-            Evaluating WPM fluency, pause frequencies, and letter reversal penalties against developmental baselines...
+            Analyzing phonological decoding rate (WPM), acoustic pauses, and picture choice accuracy...
           </p>
         </div>
       )}
@@ -455,3 +500,4 @@ export function TestMode({ onOpenChildModal }) {
     </div>
   );
 }
+

@@ -1,16 +1,24 @@
 import React, { useState } from 'react';
 import { useChild } from '../context/ChildContext';
 import { useAuth } from '../context/AuthContext';
-import { User, Sparkles, AlertCircle, ShieldCheck, X } from 'lucide-react';
+import { User, Sparkles, AlertCircle, ShieldCheck, X, AlertTriangle } from 'lucide-react';
 import { ConsentModal } from './ConsentModal';
+
+// Age expectations by standard (UKG: 5-6, Grade 1: 6-7, Grade 2: 7-8, Grade 3: 8-9)
+const STANDARD_AGE_RANGES = {
+  'UKG': { min: 4, max: 6, label: 'Age 5–6' },
+  '1': { min: 5, max: 8, label: 'Age 6–7' },
+  '2': { min: 6, max: 9, label: 'Age 7–8' },
+  '3': { min: 7, max: 10, label: 'Age 8–9' }
+};
 
 export function ChildModal({ isOpen, onClose }) {
   const { createChildWithConsent } = useChild();
   const { user } = useAuth();
 
   const [name, setName] = useState('');
-  const [age, setAge] = useState(7);
-  const [grade, setGrade] = useState('2');
+  const [age, setAge] = useState(6);
+  const [grade, setGrade] = useState('UKG');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -19,6 +27,10 @@ export function ChildModal({ isOpen, onClose }) {
   const [showConsentModal, setShowConsentModal] = useState(false);
 
   if (!isOpen) return null;
+
+  // Validation warning if age is outside standard range
+  const expectedRange = STANDARD_AGE_RANGES[grade] || { min: 4, max: 10 };
+  const hasAgeMismatch = Number(age) < expectedRange.min || Number(age) > expectedRange.max;
 
   const handleInitialSubmit = (e) => {
     e.preventDefault();
@@ -64,7 +76,7 @@ export function ChildModal({ isOpen, onClose }) {
               </div>
               <div>
                 <h3 className="font-bold text-base">Create Child Screening Profile</h3>
-                <p className="text-xs text-indigo-100">Add a child or student to begin screening</p>
+                <p className="text-xs text-indigo-100">UKG to Grade 3 early learning screening profile</p>
               </div>
             </div>
             <button
@@ -84,11 +96,11 @@ export function ChildModal({ isOpen, onClose }) {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Leo or Student-B2"
+                placeholder="e.g. Aarav, Ananya, or Student-A1"
                 required
                 className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
               />
-              <p className="text-[11px] text-zinc-400 mt-1">Pseudonyms are welcome to preserve privacy.</p>
+              <p className="text-[11px] text-zinc-400 mt-1">Pseudonyms are welcome to preserve student privacy.</p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -99,7 +111,7 @@ export function ChildModal({ isOpen, onClose }) {
                 <input
                   type="number"
                   min="4"
-                  max="16"
+                  max="11"
                   value={age}
                   onChange={(e) => setAge(Number(e.target.value))}
                   required
@@ -109,23 +121,33 @@ export function ChildModal({ isOpen, onClose }) {
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 mb-1.5">
-                  Grade Level
+                  Standard / Grade Level
                 </label>
                 <select
                   value={grade}
                   onChange={(e) => setGrade(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-semibold"
                 >
-                  <option value="K">Kindergarten (K)</option>
-                  <option value="1">Grade 1</option>
-                  <option value="2">Grade 2</option>
-                  <option value="3">Grade 3</option>
-                  <option value="4">Grade 4</option>
-                  <option value="5">Grade 5</option>
-                  <option value="6">Grade 6+</option>
+                  <option value="UKG">UKG (Age 5–6)</option>
+                  <option value="1">Grade 1 (Age 6–7)</option>
+                  <option value="2">Grade 2 (Age 7–8)</option>
+                  <option value="3">Grade 3 (Age 8–9)</option>
                 </select>
               </div>
             </div>
+
+            {/* Age vs Standard Validation Warning */}
+            {hasAgeMismatch && (
+              <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-2 animate-in fade-in">
+                <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold">Please check the child's age and standard.</span>
+                  <div className="text-[11px] text-amber-800 dark:text-amber-300 mt-0.5">
+                    Standard <strong>{grade === 'UKG' ? 'UKG' : `Grade ${grade}`}</strong> typically corresponds to <strong>{STANDARD_AGE_RANGES[grade]?.label}</strong>. You may still proceed if this is intentional.
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 mb-1.5">
@@ -135,7 +157,7 @@ export function ChildModal({ isOpen, onClose }) {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={2}
-                placeholder="e.g. Frequently pauses on b/d letters, enjoys picture stories..."
+                placeholder="e.g. Enjoys picture quizzes, takes a bit more time recognizing sounds..."
                 className="w-full px-4 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs"
               />
             </div>
@@ -177,3 +199,4 @@ export function ChildModal({ isOpen, onClose }) {
     </>
   );
 }
+

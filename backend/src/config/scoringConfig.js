@@ -1,37 +1,55 @@
 /**
- * Centralized Scoring Engine Configuration
+ * Centralized Multimodal Screening Engine Configuration
  * 
- * All feature weights, category thresholds, grade-level fluency benchmarks,
- * and penalty multipliers are managed here in one editable configuration file.
+ * Manages all feature weights, multimodal fusion ratios, developmental grade baselines,
+ * kinematic handwriting thresholds, and clinical risk categorization cutoffs.
  */
 
 export const scoringConfig = {
-  // Feature weights (must sum to 1.0)
+  // Multimodal Feature Weights for Full 4-Pillar Assessment (Sum = 1.0)
   weights: {
-    reversalErrorRate: 0.30,   // High diagnostic importance for dyslexia / visual orientation
-    readingAccuracy: 0.25,     // Word decoding & pronunciation accuracy
-    readingFluencyWpm: 0.20,   // Speaking speed compared to grade benchmark
-    pauseAndHesitation: 0.15,  // Hesitation / decoding effort indicator
-    flashcardAccuracy: 0.10    // Baseline visual recognition accuracy
+    reversalErrorRate: 0.25,     // Visual-spatial mirror letter confusion (b/d, p/q)
+    readingAccuracy: 0.20,       // Oral word decoding & substitution errors
+    readingFluencyWpm: 0.20,     // Oral reading rate vs grade baseline
+    handwritingKinematics: 0.15, // Motor dysgraphia, stroke jitter, pen lifts, consistency
+    pauseAndHesitation: 0.12,    // Acoustic hesitations and silence ratio
+    flashcardAccuracy: 0.08      // Baseline phonological recognition
+  },
+
+  // Fallback 3-Pillar Weights (when handwriting module is skipped)
+  fallbackSpeechWeights: {
+    reversalErrorRate: 0.30,
+    readingAccuracy: 0.25,
+    readingFluencyWpm: 0.20,
+    pauseAndHesitation: 0.15,
+    flashcardAccuracy: 0.10
   },
 
   // Risk Category Cutoff Thresholds (Score range: 0 - 100)
   thresholds: {
-    lowRiskMax: 34.9,          // 0 to 34.9 -> Low Risk
-    moderateRiskMax: 64.9,     // 35.0 to 64.9 -> Moderate Risk
-    // >= 65.0 -> High Risk
+    lowRiskMax: 34.9,          // 0.0 to 34.9 -> Low Screening Risk
+    moderateRiskMax: 64.9,     // 35.0 to 64.9 -> Moderate Screening Indicator
+    // >= 65.0 -> High Screening Indicator
   },
 
   // Expected Oral Reading Fluency Benchmarks (Words Per Minute) by Grade / Age
   gradeWpmBenchmarks: {
-    'K': { min: 20, target: 35, maxHesitationMs: 2500 },
-    '1': { min: 35, target: 55, maxHesitationMs: 2200 },
-    '2': { min: 60, target: 85, maxHesitationMs: 1800 },
-    '3': { min: 80, target: 110, maxHesitationMs: 1500 },
-    '4': { min: 100, target: 130, maxHesitationMs: 1300 },
-    '5': { min: 115, target: 145, maxHesitationMs: 1200 },
-    '6': { min: 130, target: 160, maxHesitationMs: 1100 },
-    'default': { min: 50, target: 80, maxHesitationMs: 1800 }
+    'K': { min: 20, target: 35, maxHesitationMs: 2500, expectedPenLifts: 4 },
+    '1': { min: 35, target: 55, maxHesitationMs: 2200, expectedPenLifts: 3 },
+    '2': { min: 60, target: 85, maxHesitationMs: 1800, expectedPenLifts: 2 },
+    '3': { min: 80, target: 110, maxHesitationMs: 1500, expectedPenLifts: 2 },
+    '4': { min: 100, target: 130, maxHesitationMs: 1300, expectedPenLifts: 1 },
+    '5': { min: 115, target: 145, maxHesitationMs: 1200, expectedPenLifts: 1 },
+    '6': { min: 130, target: 160, maxHesitationMs: 1100, expectedPenLifts: 1 },
+    'default': { min: 50, target: 80, maxHesitationMs: 1800, expectedPenLifts: 2 }
+  },
+
+  // Handwriting Kinematic Developmental Norms
+  handwritingNorms: {
+    minStrokeConsistencyScore: 70, // Below 70 indicates erratic motor control
+    maxJitterIndex: 0.95,           // Angular tremor variance threshold
+    maxVelocityVariationCV: 0.85,   // Speed instability threshold
+    maxPenLiftRateHz: 0.40          // In-air pause/lift frequency
   },
 
   // Specific high-risk letter reversal pairs to monitor
