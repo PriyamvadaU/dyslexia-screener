@@ -98,6 +98,16 @@ function MainAppLayout() {
           <p className="text-[11px] text-zinc-400">
             For educational screening & early support indicators only. Not a medical diagnosis.
           </p>
+          <p className="pt-1">
+            <a
+              href="https://github.com/PriyamvadaU/dyslexia-screener"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold"
+            >
+              GitHub: PriyamvadaU/dyslexia-screener
+            </a>
+          </p>
         </div>
       </footer>
 
