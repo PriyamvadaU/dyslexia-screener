@@ -24,7 +24,7 @@ configRouter.get('/scoring', (req, res) => {
 // PUT /api/config/scoring - Update scoring configuration
 configRouter.put('/scoring', (req, res) => {
   try {
-    const { weights, thresholds, gradeWpmBenchmarks } = req.body;
+    const { weights, thresholds, gradeWpmBenchmarks, weakSkillThreshold } = req.body;
 
     if (weights) {
       const sum = Object.values(weights).reduce((a, b) => a + Number(b), 0);
@@ -33,12 +33,20 @@ configRouter.put('/scoring', (req, res) => {
       }
     }
 
+    if (weakSkillThreshold !== undefined) {
+      const pct = Number(weakSkillThreshold);
+      if (isNaN(pct) || pct < 0 || pct > 100) {
+        return res.status(400).json({ error: 'weakSkillThreshold must be a number between 0 and 100.' });
+      }
+    }
+
     const current = db.getConfigOverrides() || scoringConfig;
     const updated = {
       ...current,
       weights: weights || current.weights,
       thresholds: thresholds || current.thresholds,
-      gradeWpmBenchmarks: gradeWpmBenchmarks || current.gradeWpmBenchmarks
+      gradeWpmBenchmarks: gradeWpmBenchmarks || current.gradeWpmBenchmarks,
+      ...(weakSkillThreshold !== undefined && { weakSkillThreshold: Number(weakSkillThreshold) })
     };
 
     db.setConfigOverrides(updated);

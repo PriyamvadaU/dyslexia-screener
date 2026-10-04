@@ -101,8 +101,34 @@ export const api = {
     return handleResponse(res);
   },
 
-  async getAssessmentQuestions(childId, grade = 'UKG', count = 10) {
-    const res = await fetch(`${API_BASE}/sessions/questions?childId=${encodeURIComponent(childId || '')}&grade=${encodeURIComponent(grade)}&count=${count}`, {
+  async getLessons(childId) {
+    const res = await fetch(`${API_BASE}/sessions/lessons?childId=${encodeURIComponent(childId)}`, {
+      headers: { ...getAuthHeader() }
+    });
+    return handleResponse(res);
+  },
+
+  async getLesson(lessonId, childId) {
+    const res = await fetch(`${API_BASE}/sessions/lessons/${encodeURIComponent(lessonId)}?childId=${encodeURIComponent(childId)}`, {
+      headers: { ...getAuthHeader() }
+    });
+    return handleResponse(res);
+  },
+
+  async saveLessonProgress(progressData) {
+    const res = await fetch(`${API_BASE}/sessions/lesson-progress`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader()
+      },
+      body: JSON.stringify(progressData)
+    });
+    return handleResponse(res);
+  },
+
+  async getAssessmentQuestions(childId, grade = 'UKG', count = 10, module = 'full_screening') {
+    const res = await fetch(`${API_BASE}/sessions/questions?childId=${encodeURIComponent(childId || '')}&grade=${encodeURIComponent(grade)}&count=${count}&module=${encodeURIComponent(module)}`, {
       headers: { ...getAuthHeader() }
     });
     return handleResponse(res);

@@ -242,6 +242,97 @@ export function Dashboard({ onOpenChildModal }) {
         </div>
       )}
 
+      {/* Learning & Lesson Progress Section (Educator / Parent Learning Tracker) */}
+      <div className="p-6 rounded-3xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-sm space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                Educational Practice Tracker
+              </span>
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200 text-[10px] font-bold">
+                Non-Scoring Practice
+              </span>
+            </div>
+            <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100 mt-0.5">
+              Overall Learning & Lesson Progression
+            </h3>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              {activeChild.grade === 'K' ? 'UKG (Age 5–6)' : `Grade ${activeChild.grade}`} • {summary?.learningProgress?.completedLessons || 0} of {summary?.learningProgress?.totalLessons || 0} lessons completed ({summary?.learningProgress?.overallProgressPct || 0}%)
+            </p>
+          </div>
+
+          <Link
+            to="/learn"
+            className="px-4 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 text-xs font-bold flex items-center gap-1.5 transition-colors"
+          >
+            <BookOpen className="w-4 h-4 text-amber-500" />
+            <span>Open Learning Map</span>
+          </Link>
+        </div>
+
+        {/* Overall Lesson Progress Bar */}
+        <div className="w-full bg-zinc-100 dark:bg-zinc-700 h-3 rounded-full overflow-hidden">
+          <div
+            className="bg-gradient-to-r from-indigo-500 to-emerald-500 h-full rounded-full transition-all duration-500"
+            style={{ width: `${summary?.learningProgress?.overallProgressPct || 0}%` }}
+          />
+        </div>
+
+        {/* Recommended Practice Banner if Weak Skills Identified */}
+        {summary?.learningProgress?.recommendedPractice?.length > 0 && (
+          <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl select-none">💡</span>
+              <div>
+                <span className="text-xs font-bold text-amber-800 dark:text-amber-300">
+                  Targeted Learning Recommendation:
+                </span>
+                <p className="text-xs text-amber-950 dark:text-amber-100 font-medium">
+                  {summary.learningProgress.recommendedPractice[0].domain} — {summary.learningProgress.recommendedPractice[0].message}
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/learn"
+              className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-amber-950 font-bold text-xs shadow flex-shrink-0"
+            >
+              Practice This Skill
+            </Link>
+          </div>
+        )}
+
+        {/* Domain Progress Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
+          {summary?.learningProgress?.domainProgress?.map((dom) => (
+            <div
+              key={dom.domainId}
+              className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-750 border border-zinc-200/80 dark:border-zinc-700 space-y-2"
+            >
+              <div className="flex items-center justify-between text-xs font-bold">
+                <span className="flex items-center gap-1.5">
+                  <span className="text-base">{dom.emoji}</span>
+                  <span className="text-zinc-800 dark:text-zinc-200">{dom.domainName}</span>
+                </span>
+                <span className="text-zinc-500">
+                  {dom.completedLessons}/{dom.totalLessons}
+                </span>
+              </div>
+              <div className="w-full bg-zinc-200 dark:bg-zinc-600 h-2 rounded-full overflow-hidden">
+                <div
+                  className="bg-indigo-600 h-full rounded-full transition-all"
+                  style={{ width: `${dom.progressPct}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <p className="text-[11px] text-zinc-400 italic">
+          Note: Learning practice is formative and stress-free. Standardized clinical screening risk indicators are presented below.
+        </p>
+      </div>
+
       {/* Trend Visualizations Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         

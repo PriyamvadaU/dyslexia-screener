@@ -16,6 +16,7 @@ const INITIAL_SCHEMA = {
   testSessions: [],
   scores: [],
   writingSessions: [], // Phase 2 extension
+  lessonProgress: [], // Persistent lesson progress for UKG–Grade 3
   scoringConfigOverrides: null
 };
 
@@ -49,9 +50,7 @@ class LocalDatabase {
       if (!fs.existsSync(DATA_DIR)) {
         fs.mkdirSync(DATA_DIR, { recursive: true });
       }
-      const tmpFile = `${DB_FILE}.tmp`;
-      fs.writeFileSync(tmpFile, JSON.stringify(this.data, null, 2), 'utf-8');
-      fs.renameSync(tmpFile, DB_FILE);
+      fs.writeFileSync(DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
     } catch (err) {
       console.error('[DB] Error writing to DB file:', err);
     }

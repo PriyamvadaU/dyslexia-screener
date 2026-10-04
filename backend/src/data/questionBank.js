@@ -5,13 +5,12 @@
  * Question Types:
  * 1. 'sound_to_picture': "Recognize this by sound" -> spoken audio word/sound -> 4 picture cards.
  * 2. 'visual_matching': "Find the matching picture" / "Which picture belongs to..." -> 4 picture cards.
- * 3. 'letter_orientation': Letter discrimination & mirror pairs (b/d, p/q, m/w) with visual clues.
  * 4. 'category_recognition': "Find the fruit / animal / vehicle / good habit".
- *
- * Note: Target text answers are NEVER exposed in prompt titles or button text!
  */
 
-export const QUESTION_BANK = [
+import { DOCX_QUESTION_BANK } from './docxQuestionBank.js';
+
+export const BASE_QUESTION_BANK = [
   // ==========================================
   // UKG (Age 5–6) - Easy & Medium Sounds / Pictures
   // ==========================================
@@ -939,47 +938,84 @@ export const QUESTION_BANK = [
   }
 ];
 
+// Map questions by stable ID to combine both sets without duplicates
+const mergedMap = new Map();
+// 1. Original visual/audio questions
+BASE_QUESTION_BANK.forEach(q => mergedMap.set(q.id, q));
+// 2. Verified question bank from docx
+DOCX_QUESTION_BANK.forEach(q => {
+  if (!mergedMap.has(q.id)) {
+    mergedMap.set(q.id, q);
+  }
+});
+
+export const QUESTION_BANK = Array.from(mergedMap.values());
+
 /**
- * Smart Randomizer: Selects questions balanced across categories and grade difficulty ratios:
- * - UKG: 70% Easy, 30% Medium, 0% Adv
- * - Grade 1: 60% Easy, 35% Medium, 5% Adv
- * - Grade 2: 40% Easy, 45% Medium, 15% Adv
- * - Grade 3: 30% Easy, 50% Medium, 20% Adv
+ * Retrieve a single question by its stable ID
  */
-export function sampleAssessmentQuestions({ grade = 'UKG', recentQuestionIds = [], targetCount = 10 }) {
+export function getQuestionById(id) {
+  return mergedMap.get(id) || null;
+}
+
+/**
+ * Smart Randomizer: Selects questions balanced across categories and grade difficulty ratios
+ * STRICT GRADE ISOLATION ENFORCED:
+ * - UKG: ONLY UKG questions
+ * - Grade 1: ONLY Grade 1 questions
+ * - Grade 2: ONLY Grade 2 questions
+ * - Grade 3: ONLY Grade 3 questions
+ */
+export function sampleAssessmentQuestions({ grade = 'UKG', recentQuestionIds = [], targetCount = 10, module = 'full_screening' }) {
   const cleanGrade = String(grade).toUpperCase().replace(/GRADE\s*/i, '').trim() || 'UKG';
 
+  // STRICT GRADE ISOLATION: A UKG child NEVER gets Grade 1, 2, or 3 questions.
+  // A Grade 1 child NEVER gets UKG, Grade 2, or Grade 3 questions!
   let candidatePool = QUESTION_BANK.filter(q => {
-    if (cleanGrade === 'UKG') return q.standard_min === 'UKG';
-    if (cleanGrade === '1') return q.standard_min === '1' || q.standard_min === 'UKG';
-    if (cleanGrade === '2') return q.standard_min === '2' || q.standard_min === '1';
-    return q.standard_min === '3' || q.standard_min === '2';
+    const qGrade = String(q.standard_min || q.grade || '').toUpperCase().replace(/GRADE\s*/i, '').trim();
+    return qGrade === cleanGrade;
   });
 
-  if (candidatePool.length === 0) {
-    candidatePool = [...QUESTION_BANK];
+  // Filter by assessment module focus if requested
+  if (module === 'phonological') {
+    const phonPool = candidatePool.filter(q => {
+      const d = String(q.domain || q.category || '').toLowerCase();
+      return d.includes('phon') || d.includes('rhym') || d.includes('sound') || d.includes('syllab') || d.includes('oral');
+    });
+    if (phonPool.length >= 5) candidatePool = phonPool;
+  } else if (module === 'letter_orientation') {
+    const letterPool = candidatePool.filter(q => {
+      return Boolean(q.isReversalTest) || String(q.domain || q.category || '').toLowerCase().includes('letter') || String(q.domain || q.category || '').toLowerCase().includes('alphabet') || String(q.domain || q.category || '').toLowerCase().includes('pattern');
+    });
+    if (letterPool.length >= 5) candidatePool = letterPool;
+  }
+
+  // If pool has fewer questions than targetCount, adjust targetCount
+  const actualTarget = Math.min(candidatePool.length, targetCount);
+  if (actualTarget === 0) {
+    return [];
   }
 
   const easyPool = candidatePool.filter(q => q.difficulty === 'easy');
   const medPool = candidatePool.filter(q => q.difficulty === 'medium');
   const advPool = candidatePool.filter(q => q.difficulty === 'advanced');
 
-  let easyCount = Math.round(targetCount * 0.7);
-  let medCount = Math.round(targetCount * 0.3);
+  let easyCount = Math.round(actualTarget * 0.7);
+  let medCount = Math.round(actualTarget * 0.3);
   let advCount = 0;
 
   if (cleanGrade === '1') {
-    easyCount = Math.round(targetCount * 0.6);
-    medCount = Math.round(targetCount * 0.35);
-    advCount = Math.max(0, targetCount - easyCount - medCount);
+    easyCount = Math.round(actualTarget * 0.6);
+    medCount = Math.round(actualTarget * 0.35);
+    advCount = Math.max(0, actualTarget - easyCount - medCount);
   } else if (cleanGrade === '2') {
-    easyCount = Math.round(targetCount * 0.4);
-    medCount = Math.round(targetCount * 0.45);
-    advCount = Math.max(0, targetCount - easyCount - medCount);
+    easyCount = Math.round(actualTarget * 0.4);
+    medCount = Math.round(actualTarget * 0.45);
+    advCount = Math.max(0, actualTarget - easyCount - medCount);
   } else if (cleanGrade === '3') {
-    easyCount = Math.round(targetCount * 0.3);
-    medCount = Math.round(targetCount * 0.5);
-    advCount = Math.max(0, targetCount - easyCount - medCount);
+    easyCount = Math.round(actualTarget * 0.3);
+    medCount = Math.round(actualTarget * 0.5);
+    advCount = Math.max(0, actualTarget - easyCount - medCount);
   }
 
   const shuffle = (arr) => [...arr].sort(() => 0.5 - Math.random());
@@ -995,10 +1031,10 @@ export function sampleAssessmentQuestions({ grade = 'UKG', recentQuestionIds = [
 
   let combined = [...selectedEasy, ...selectedMed, ...selectedAdv];
 
-  if (combined.length < targetCount) {
+  if (combined.length < actualTarget) {
     const remaining = candidatePool.filter(q => !combined.some(c => c.id === q.id));
-    combined = [...combined, ...shuffle(remaining).slice(0, targetCount - combined.length)];
+    combined = [...combined, ...shuffle(remaining).slice(0, actualTarget - combined.length)];
   }
 
-  return shuffle(combined.slice(0, targetCount));
+  return shuffle(combined.slice(0, actualTarget));
 }

@@ -1,4 +1,6 @@
 node_modules/
 dist/
-
+.env
+.env.*
 backend/data/screener_db.json
+backend/data/extracted_docx_lines.txt
