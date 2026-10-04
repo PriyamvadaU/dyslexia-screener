@@ -6,6 +6,7 @@ import { childRouter } from './routes/childRoutes.js';
 import { sessionRouter } from './routes/sessionRoutes.js';
 import { configRouter } from './routes/configRoutes.js';
 import { mlRouter } from './routes/mlRoutes.js';
+import { questionRouter } from './routes/questionRoutes.js';
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ app.use('/api/children', childRouter);
 app.use('/api/sessions', sessionRouter);
 app.use('/api/config', configRouter);
 app.use('/api/ml', mlRouter);
+app.use('/api/questions', questionRouter);
 
 import path from 'path';
 import fs from 'fs';

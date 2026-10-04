@@ -59,8 +59,8 @@ export function Navbar({ onOpenChildModal }) {
                 >
                   <BookOpen className="w-4 h-4 text-amber-600" />
                   <span>Learn (Practice)</span>
-                  <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-200/80 dark:bg-amber-900 text-amber-900 dark:text-amber-200 font-normal">
-                    0 Score
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-200/80 dark:bg-amber-900 text-amber-900 dark:text-amber-200 font-bold">
+                    Question Bank
                   </span>
                 </Link>
 

@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
+    "seed:questions": "node src/data/seedQuestions.js",
     "test": "node --test test/*.test.js"
   },
   "dependencies": {

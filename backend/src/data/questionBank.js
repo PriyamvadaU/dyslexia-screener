@@ -948,16 +948,15 @@ export const QUESTION_BANK = [
  */
 export function sampleAssessmentQuestions({ grade = 'UKG', recentQuestionIds = [], targetCount = 10 }) {
   const cleanGrade = String(grade).toUpperCase().replace(/GRADE\s*/i, '').trim() || 'UKG';
+  const normalizedGrade = (cleanGrade === 'K' || cleanGrade === '0' || cleanGrade === 'UKG') ? 'UKG' : cleanGrade;
 
+  // Strict Grade Isolation: candidate questions must match the child's exact grade level
   let candidatePool = QUESTION_BANK.filter(q => {
-    if (cleanGrade === 'UKG') return q.standard_min === 'UKG';
-    if (cleanGrade === '1') return q.standard_min === '1' || q.standard_min === 'UKG';
-    if (cleanGrade === '2') return q.standard_min === '2' || q.standard_min === '1';
-    return q.standard_min === '3' || q.standard_min === '2';
+    return q.standard_min === normalizedGrade || q.standard_max === normalizedGrade;
   });
 
   if (candidatePool.length === 0) {
-    candidatePool = [...QUESTION_BANK];
+    candidatePool = QUESTION_BANK.filter(q => q.standard_min === 'UKG');
   }
 
   const easyPool = candidatePool.filter(q => q.difficulty === 'easy');

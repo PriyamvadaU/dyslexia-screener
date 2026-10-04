@@ -226,5 +226,60 @@ export const api = {
       headers: { ...getAuthHeader() }
     });
     return handleResponse(res);
+  },
+
+  // Dyslexia Non-Writing Question Bank APIs
+  async getQuestionBankQuestions({ grade, domain, skill, question_type, limit, offset } = {}) {
+    const params = new URLSearchParams();
+    if (grade) params.append('grade', grade);
+    if (domain) params.append('domain', domain);
+    if (skill) params.append('skill', skill);
+    if (question_type) params.append('question_type', question_type);
+    if (limit) params.append('limit', limit);
+    if (offset) params.append('offset', offset);
+
+    const res = await fetch(`${API_BASE}/questions?${params.toString()}`);
+    return handleResponse(res);
+  },
+
+  async getQuestionBankStats() {
+    const res = await fetch(`${API_BASE}/questions/stats`);
+    return handleResponse(res);
+  },
+
+  async getQuestionBankDomains(grade) {
+    const params = new URLSearchParams();
+    if (grade) params.append('grade', grade);
+    const res = await fetch(`${API_BASE}/questions/domains?${params.toString()}`);
+    return handleResponse(res);
+  },
+
+  async recordQuestionProgress(payload) {
+    const res = await fetch(`${API_BASE}/questions/progress`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader()
+      },
+      body: JSON.stringify(payload)
+    });
+    return handleResponse(res);
+  },
+
+  async getChildQuestionProgress(childId, grade) {
+    const params = new URLSearchParams();
+    if (grade) params.append('grade', grade);
+    const res = await fetch(`${API_BASE}/questions/progress/${childId}?${params.toString()}`, {
+      headers: { ...getAuthHeader() }
+    });
+    return handleResponse(res);
+  },
+
+  async seedQuestionBank() {
+    const res = await fetch(`${API_BASE}/questions/seed`, {
+      method: 'POST',
+      headers: { ...getAuthHeader() }
+    });
+    return handleResponse(res);
   }
 };
