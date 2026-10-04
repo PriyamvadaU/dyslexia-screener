@@ -5,6 +5,14 @@
 
 ---
 
+## 🔗 Project Links
+
+* **GitHub Repository**: [https://github.com/PriyamvadaU/dyslexia-screener](https://github.com/PriyamvadaU/dyslexia-screener)
+* **Non-Writing Question Bank (690 Questions)**: [`backend/src/data/dyslexiaQuestionBank.json`](backend/src/data/dyslexiaQuestionBank.json)
+* **API Endpoints Documentation**: [`backend/src/routes/questionRoutes.js`](backend/src/routes/questionRoutes.js)
+
+---
+
 ## 🌟 Overview & Architecture
 
 **LexiScreen** is a web-based multimodal screening platform designed for children, parents, and educators. It implements a gentle, evidence-based two-step sequence:
@@ -58,7 +66,7 @@ npm run dev
 ## 🧠 Scoring Engine Configuration
 
 All formula weights, cutoff thresholds, and grade-level fluency benchmarks are centralized in one single module:
-👉 [`backend/src/config/scoringConfig.js`](file:///C:/Users/pihuu/.gemini/antigravity/scratch/dyslexia-screener/backend/src/config/scoringConfig.js)
+👉 [`backend/src/config/scoringConfig.js`](backend/src/config/scoringConfig.js)
 
 ### Default Feature Weights (Sum = 1.0)
 - **Letter Reversal Error Rate**: `0.30` (30% weight on mirror letters `b/d`, `p/q`, etc.)
