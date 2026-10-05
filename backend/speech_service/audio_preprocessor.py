@@ -1,6 +1,6 @@
 """
 Audio Preprocessing & Quality Analysis
-Converts arbitrary audio streams (WebM, WAV, MP3, OGG) to 16kHz float32 mono PCM.
+Converts arbitrary audio streams (WebM, WAV, MP3, OGG, M4A) to 16kHz float32 mono PCM.
 Calculates SNR and clipping diagnostics.
 """
 import io
@@ -8,21 +8,68 @@ import numpy as np
 import soundfile as sf
 import librosa
 
+def _decode_with_pyav(audio_bytes: bytes, target_sr: int) -> tuple[np.ndarray, int]:
+    """
+    Decode in-memory audio (M4A, MP3, OGG, WebM, WAV …) using PyAV 18.x.
+    Uses arithmetic channel averaging (mean) for stereo-to-mono downmixing to prevent
+    the ~1.414x equal-power gain boost of libswresample that causes false clipping detection.
+    Returns (mono_float32_array, target_sr).
+    Raises ImportError if av is not installed, or av.AVError on decode failure.
+    """
+    import av  # optional dependency – PyAV 18.1.0
+    bio = io.BytesIO(audio_bytes)
+    container = av.open(bio)
+    resampler = av.AudioResampler(format="fltp", rate=target_sr)
+    frames: list[np.ndarray] = []
+    for raw_frame in container.decode(audio=0):
+        for resampled_frame in resampler.resample(raw_frame):
+            arr = resampled_frame.to_ndarray()
+            if arr.ndim > 1 and arr.shape[0] > 1:
+                mono = np.mean(arr, axis=0)
+            elif arr.ndim > 1:
+                mono = arr[0]
+            else:
+                mono = arr
+            frames.append(mono)
+    container.close()
+    if not frames:
+        raise ValueError("PyAV decoded zero audio frames")
+    return np.concatenate(frames).astype(np.float32), target_sr
+
+
 def load_and_preprocess_audio(audio_bytes: bytes, target_sr: int = 16000) -> tuple[np.ndarray, dict]:
     """
     Decodes audio bytes and normalizes to single-channel 16kHz float32 PCM array.
+    Decode priority:
+      1. PyAV 18.x  – handles M4A, MP3, OGG, WebM, WAV from BytesIO
+      2. soundfile  – WAV/FLAC/OGG (fast, lossless)
+      3. librosa    – last-resort fallback
     Returns: (audio_array, audio_quality_metadata)
     """
     try:
-        # Load audio using soundfile / librosa fallback
-        bio = io.BytesIO(audio_bytes)
+        # --- 1. Try PyAV first (supports all container formats from BytesIO) ---
         try:
-            audio, sr = sf.read(bio, dtype="float32")
+            audio, sr = _decode_with_pyav(audio_bytes, target_sr)
+            # PyAV resampler already delivers mono @ target_sr, so skip further
+            # mono/resample steps below.
+        except ImportError:
+            # PyAV not installed – fall through to soundfile/librosa
+            bio = io.BytesIO(audio_bytes)
+            try:
+                audio, sr = sf.read(bio, dtype="float32")
+            except Exception:
+                bio.seek(0)
+                audio, sr = librosa.load(bio, sr=target_sr, mono=True)
         except Exception:
-            bio.seek(0)
-            audio, sr = librosa.load(bio, sr=target_sr, mono=True)
+            # PyAV failed on this stream – fall back to soundfile/librosa
+            bio = io.BytesIO(audio_bytes)
+            try:
+                audio, sr = sf.read(bio, dtype="float32")
+            except Exception:
+                bio.seek(0)
+                audio, sr = librosa.load(bio, sr=target_sr, mono=True)
 
-        # Convert to mono if multi-channel
+        # Convert to mono if multi-channel (soundfile/librosa path may return stereo)
         if audio.ndim > 1:
             audio = np.mean(audio, axis=1)
 

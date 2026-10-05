@@ -20,6 +20,17 @@ def normalize_text_tokens(text: str) -> list[str]:
     clean = re.sub(r"[^a-zA-Z0-9\s'-]", " ", text.lower())
     return [w.strip("'-") for w in clean.split() if w.strip("'-")]
 
+def _normalize_spoken_token(raw_word: str) -> str:
+    """
+    Normalize a single ASR-returned word for alignment comparison only.
+    Strips the same punctuation that normalize_text_tokens() strips from the
+    expected text so that, e.g., 'it.' and 'it' compare as equal.
+    The raw transcript is never modified; this result is used only in the
+    DP/backtracking logic and stored as the clean spokenWord in wordTimings.
+    """
+    tokens = normalize_text_tokens(raw_word)
+    return tokens[0] if tokens else raw_word.lower().strip()
+
 def compute_phonetic_similarity(word1: str, word2: str) -> float:
     """
     Computes phonetic similarity between two words (0.0 to 1.0).
@@ -92,7 +103,7 @@ def align_expected_and_spoken(expected_text: str, aligned_words: list[dict]) -> 
     Extracts correct, substitutions, omissions, insertions, repetitions, and uncertain items.
     """
     target_tokens = normalize_text_tokens(expected_text)
-    spoken_tokens = [w["word"].lower().strip("'-") for w in aligned_words]
+    spoken_tokens = [_normalize_spoken_token(w["word"]) for w in aligned_words]
 
     m = len(target_tokens)
     n = len(spoken_tokens)
@@ -214,8 +225,8 @@ def align_expected_and_spoken(expected_text: str, aligned_words: list[dict]) -> 
     # 3. Detect Repetitions in spoken word stream
     repetitions = []
     for idx in range(len(aligned_words) - 1):
-        w_curr = aligned_words[idx]["word"].lower().strip("'-")
-        w_next = aligned_words[idx + 1]["word"].lower().strip("'-")
+        w_curr = _normalize_spoken_token(aligned_words[idx]["word"])
+        w_next = _normalize_spoken_token(aligned_words[idx + 1]["word"])
         if w_curr and w_curr == w_next:
             repetitions.append({
                 "type": "word_repetition",

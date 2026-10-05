@@ -16,6 +16,7 @@ try:
     from .expected_aligner import align_expected_and_spoken, normalize_text_tokens
     from .temporal_analyzer import analyze_temporal_and_disfluencies
     from .quality_gate import evaluate_quality_and_state
+    from .json_utils import sanitize_for_json
 except (ImportError, ValueError):
     from config import config
     from audio_preprocessor import load_and_preprocess_audio
@@ -25,6 +26,7 @@ except (ImportError, ValueError):
     from expected_aligner import align_expected_and_spoken, normalize_text_tokens
     from temporal_analyzer import analyze_temporal_and_disfluencies
     from quality_gate import evaluate_quality_and_state
+    from json_utils import sanitize_for_json
 
 
 app = FastAPI(
@@ -119,8 +121,8 @@ async def analyze_reading(
 
         inference_duration_ms = round((time.time() - start_time) * 1000)
 
-        # 9. Return structured ReadingAnalysis payload
-        return {
+        # 9. Return structured ReadingAnalysis payload (sanitized for JSON)
+        return sanitize_for_json({
             "assessmentState": assessment_state,
             "qualityFlags": quality_flags,
             "rawTranscript": raw_transcript,
@@ -152,7 +154,7 @@ async def analyze_reading(
                 "inferenceDurationMs": inference_duration_ms,
                 "deviceUsed": config.DEVICE
             }
-        }
+        })
 
     except Exception as e:
         print(f"[SpeechService] Analysis error: {e}")

@@ -78,9 +78,9 @@ def analyze_temporal_and_disfluencies(
     # 3. Detect Non-Diagnostic Acoustic Events
     acoustic_events = []
 
-    # Detect long_pre_word_latency & possible_block_like_interval
+    # Detect long_pre_word_latency & possible_block_like_interval (intra-reading pauses only; ignore leading silence where precedingWord is None)
     for p in pauses_list:
-        if p["durationMs"] >= config.LONG_PRE_WORD_LATENCY_MS and p.get("followingWord"):
+        if p["durationMs"] >= config.LONG_PRE_WORD_LATENCY_MS and p.get("precedingWord") and p.get("followingWord"):
             event_type = "possible_block_like_interval" if p["durationMs"] >= config.POSSIBLE_BLOCK_SILENCE_MS else "long_pre_word_latency"
             acoustic_events.append({
                 "indicator": event_type,

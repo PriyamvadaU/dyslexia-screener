@@ -11,8 +11,19 @@ class SpeechConfig:
     # Model settings
     # Options: "large-v3", "medium.en", "small.en", "base.en", "tiny.en"
     DEFAULT_MODEL_SIZE = os.getenv("WHISPER_MODEL_SIZE", "base.en")
-    DEVICE = os.getenv("WHISPER_DEVICE", "cpu") # "cuda" or "cpu"
-    COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE", "int8" if os.getenv("WHISPER_DEVICE", "cpu") == "cpu" else "float16")
+    
+    # Auto-detect CUDA GPU if available and not explicitly overridden
+    _default_device = "cpu"
+    try:
+        import torch
+        if torch.cuda.is_available():
+            _default_device = "cuda"
+    except Exception:
+        pass
+
+    DEVICE = os.getenv("WHISPER_DEVICE", _default_device)
+    COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE", "float16" if DEVICE == "cuda" else "int8")
+    DOWNLOAD_ROOT = os.getenv("WHISPER_DOWNLOAD_ROOT", None)
     
     # VAD settings
     VAD_SAMPLING_RATE = 16000

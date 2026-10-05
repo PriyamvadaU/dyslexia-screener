@@ -25,7 +25,7 @@ class FasterWhisperTranscriber:
                 self.model_size,
                 device=self.device,
                 compute_type=self.compute_type,
-                download_root=os.path.join(os.path.dirname(__file__), "models")
+                download_root=config.DOWNLOAD_ROOT or os.path.join(os.path.dirname(__file__), "models")
             )
             print(f"[ASR] faster-whisper '{self.model_size}' loaded successfully.")
         except Exception as e:
