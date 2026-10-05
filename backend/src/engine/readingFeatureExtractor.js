@@ -30,9 +30,111 @@ export function extractReadingFeatures({
   totalPauseDurationMs = 0,
   averageHesitationMs = 0,
   audioTelemetry = {},
+  readingAnalysis = null,
   grade = '2'
 } = {}) {
   const benchmark = getGradeBenchmark(grade);
+
+  // If rich ReadingAnalysis object is already provided from speech microservice/fallback
+  if (readingAnalysis && readingAnalysis.wordTimings) {
+    const cleanDurationSec = Math.max(1, Number(readingAnalysis.durationSec) || Number(durationSec) || 1);
+    const durationMinutes = cleanDurationSec / 60;
+    const correctWordsCount = Number(readingAnalysis.correctWordCount) || 0;
+    const totalTargetWords = Number(readingAnalysis.expectedWordCount) || 1;
+    const totalSpokenWords = Number(readingAnalysis.spokenWordCount) || 0;
+    const decodingAccuracyPct = Number(readingAnalysis.decodingAccuracyPct ?? ((correctWordsCount / totalTargetWords) * 100));
+
+    const rawWpm = readingAnalysis.wpm !== undefined
+      ? Number(readingAnalysis.wpm)
+      : (durationMinutes > 0 ? Math.round(correctWordsCount / durationMinutes) : 0);
+
+    // Normalization against developmental grade benchmark
+    let fluencyRisk = 0;
+    let fluencyStatus = 'on_target';
+
+    if (rawWpm < benchmark.min) {
+      const deficitRatio = (benchmark.min - rawWpm) / benchmark.min;
+      fluencyRisk = Math.min(100, 50 + deficitRatio * 50);
+      fluencyStatus = 'below_minimum';
+    } else if (rawWpm < benchmark.target) {
+      const deficitRatio = (benchmark.target - rawWpm) / ((benchmark.target - benchmark.min) || 1);
+      fluencyRisk = Math.min(50, deficitRatio * 50);
+      fluencyStatus = 'developing';
+    } else {
+      fluencyRisk = 0;
+      fluencyStatus = 'fluent';
+    }
+
+    const temp = readingAnalysis.temporalIndicators || {};
+    const pauseCnt = temp.totalPauseCount !== undefined ? temp.totalPauseCount : (Number(pauseCount) || 0);
+    const pauseDurMs = temp.totalPauseDurationMs !== undefined ? temp.totalPauseDurationMs : (Number(totalPauseDurationMs) || 0);
+    const silenceRatio = temp.silenceRatio !== undefined ? temp.silenceRatio : (Number(cleanDurationSec > 0 ? (pauseDurMs / 1000) / cleanDurationSec : 0));
+    const hesitationMs = temp.meanPauseDurationMs !== undefined ? temp.meanPauseDurationMs : (Number(averageHesitationMs) || 0);
+    const excessHesitationMs = Math.max(0, hesitationMs - benchmark.maxHesitationMs);
+
+    const pausesPerMinute = durationMinutes > 0 ? Number((pauseCnt / durationMinutes).toFixed(2)) : 0;
+    const pauseFrequencyRisk = Math.min(100, pausesPerMinute * 14);
+    const silenceRatioRisk = Math.min(100, silenceRatio * 150);
+    const hesitationDurationRisk = Math.min(100, (excessHesitationMs / 1000) * 35);
+    const aggregatePauseRisk = Number(Math.min(100, (pauseFrequencyRisk * 0.45) + (silenceRatioRisk * 0.35) + (hesitationDurationRisk * 0.20)).toFixed(1));
+
+    const decodingRisk = Number(Math.max(0, Math.min(100, (100 - decodingAccuracyPct) * 1.6)).toFixed(1));
+    const readingRiskScore = Number(Math.max(0, Math.min(100,
+      (fluencyRisk * 0.40) +
+      (decodingRisk * 0.35) +
+      (aggregatePauseRisk * 0.25)
+    )).toFixed(1));
+
+    return {
+      calculatedWpm: rawWpm,
+      targetWpm: benchmark.target,
+      minWpm: benchmark.min,
+      fluencyStatus,
+      durationSec: cleanDurationSec,
+      speechDurationSec: readingAnalysis.speechDurationSec || Math.round(cleanDurationSec * (1 - silenceRatio)),
+      silenceDurationSec: readingAnalysis.silenceDurationSec || Math.round(cleanDurationSec * silenceRatio),
+      totalTargetWords,
+      totalSpokenWords,
+      correctWordsCount,
+      uncertainWordCount: readingAnalysis.uncertainWordCount || 0,
+      decodingAccuracyPct,
+      assessmentState: readingAnalysis.assessmentState || 'valid',
+      qualityFlags: readingAnalysis.qualityFlags || [],
+      errorCounts: {
+        substitutions: Array.isArray(readingAnalysis.substitutions) ? readingAnalysis.substitutions.length : 0,
+        omissions: Array.isArray(readingAnalysis.omissions) ? readingAnalysis.omissions.length : 0,
+        insertions: Array.isArray(readingAnalysis.insertions) ? readingAnalysis.insertions.length : 0,
+        repetitions: Array.isArray(readingAnalysis.repetitions) ? readingAnalysis.repetitions.length : 0
+      },
+      errorDetails: {
+        substitutions: (readingAnalysis.substitutions || []).slice(0, 10),
+        omissions: (readingAnalysis.omissions || []).slice(0, 10),
+        insertions: (readingAnalysis.insertions || []).slice(0, 10),
+        repetitions: (readingAnalysis.repetitions || []).slice(0, 10)
+      },
+      pauses: {
+        count: pauseCnt,
+        pausesPerMinute,
+        totalPauseDurationMs: Math.round(pauseDurMs),
+        silenceRatio,
+        averageHesitationMs: Math.round(hesitationMs),
+        maxExpectedHesitationMs: benchmark.maxHesitationMs
+      },
+      acousticEvents: readingAnalysis.acousticEvents || [],
+      wordTimings: readingAnalysis.wordTimings || [],
+      readingRiskScore,
+      riskBreakdown: {
+        fluencyRisk: Math.round(fluencyRisk),
+        decodingRisk: Math.round(decodingRisk),
+        pauseRisk: Math.round(aggregatePauseRisk)
+      },
+      rawTranscript: readingAnalysis.rawTranscript || transcript.trim(),
+      normalizedTranscript: readingAnalysis.normalizedTranscript || '',
+      transcriptSanitized: transcript.trim() || readingAnalysis.rawTranscript || '',
+      modelMetadata: readingAnalysis.modelMetadata || null
+    };
+  }
+
   const cleanDurationSec = Math.max(1, Number(durationSec) || 1);
 
   // 1. Tokenize & Clean Text
@@ -98,7 +200,6 @@ export function extractReadingFeatures({
   const decodingRisk = Number(Math.max(0, Math.min(100, (100 - decodingAccuracyPct) * 1.6)).toFixed(1));
 
   // 6. Overall Composite Reading Risk Score (0 - 100)
-  // 40% Fluency Deficit, 35% Decoding Accuracy Deficit, 25% Pause/Hesitation Friction
   const readingRiskScore = Number(Math.max(0, Math.min(100,
     (fluencyRisk * 0.40) +
     (decodingRisk * 0.35) +
@@ -115,15 +216,19 @@ export function extractReadingFeatures({
     totalSpokenWords,
     correctWordsCount,
     decodingAccuracyPct,
+    assessmentState: 'valid',
+    qualityFlags: [],
     errorCounts: {
       substitutions: substitutionErrors.length,
       omissions: omissionErrors.length,
-      insertions: insertionErrors.length
+      insertions: insertionErrors.length,
+      repetitions: 0
     },
     errorDetails: {
       substitutions: substitutionErrors.slice(0, 10),
       omissions: omissionErrors.slice(0, 10),
-      insertions: insertionErrors.slice(0, 10)
+      insertions: insertionErrors.slice(0, 10),
+      repetitions: []
     },
     pauses: {
       count: pauseCount,
@@ -133,6 +238,7 @@ export function extractReadingFeatures({
       averageHesitationMs: Math.round(hesitationMs),
       maxExpectedHesitationMs: benchmark.maxHesitationMs
     },
+    acousticEvents: [],
     readingRiskScore,
     riskBreakdown: {
       fluencyRisk: Math.round(fluencyRisk),

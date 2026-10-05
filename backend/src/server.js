@@ -7,6 +7,7 @@ import { sessionRouter } from './routes/sessionRoutes.js';
 import { configRouter } from './routes/configRoutes.js';
 import { mlRouter } from './routes/mlRoutes.js';
 import { questionRouter } from './routes/questionRoutes.js';
+import { readingRouter } from './routes/readingRoutes.js';
 
 dotenv.config();
 
@@ -40,6 +41,7 @@ app.use('/api/sessions', sessionRouter);
 app.use('/api/config', configRouter);
 app.use('/api/ml', mlRouter);
 app.use('/api/questions', questionRouter);
+app.use('/api/reading', readingRouter);
 
 import path from 'path';
 import fs from 'fs';
@@ -67,8 +69,10 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start Server if run directly
-if (process.env.VERCEL !== '1') {
+// Start Server only when run directly (not imported by tests or other modules)
+import { fileURLToPath as _ftu } from 'url';
+const _isMain = process.argv[1] && process.argv[1].replace(/\\/g, '/') === _ftu(import.meta.url).replace(/\\/g, '/');
+if (_isMain && process.env.VERCEL !== '1') {
   app.listen(PORT, () => {
     console.log(`====================================================`);
     console.log(`  LexiScreen Backend API & Scoring Engine`);
