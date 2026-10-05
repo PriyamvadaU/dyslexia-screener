@@ -28,13 +28,15 @@ readingRouter.post('/analyze', async (req, res) => {
 
     let audioBuffer = null;
     if (audioBase64) {
-      // Decode base64 audio data URL or raw base64
-      const base64Data = audioBase64.replace(/^data:audio\/\w+;base64,/, '');
+      // Decode base64 audio data URL (with or without codec parameters) or raw base64
+      const base64Data = audioBase64.includes(';base64,')
+        ? audioBase64.split(';base64,')[1]
+        : audioBase64.replace(/^data:[^;]+;base64,/, '');
       audioBuffer = Buffer.from(base64Data, 'base64');
     }
 
-    if (!expectedPassage && !transcript) {
-      return res.status(400).json({ error: 'expectedPassage and transcript/audio are required.' });
+    if (!expectedPassage || (!transcript && !audioBuffer)) {
+      return res.status(400).json({ error: 'expectedPassage and either transcript or audio are required.' });
     }
 
     const analysis = await analyzeOralReading({

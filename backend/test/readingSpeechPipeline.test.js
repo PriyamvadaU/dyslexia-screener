@@ -295,4 +295,146 @@ describe('LexiScreen Speech & Oral Reading Pipeline Suite', () => {
       await new Promise(resolve => server.close(resolve));
     }
   });
+
+  // 13. Integration: readingAnalysis flows from computeMultimodalScore → extractReadingFeatures
+  it('Scenario 13: ReadingAnalysis in rawData reaches scoring pipeline via multimodal fusion', async () => {
+    const { computeMultimodalScore } = await import('../src/engine/multimodalFusion.js');
+
+    const mockAnalysis = {
+      assessmentState: 'valid',
+      decodingAccuracyPct: 92.3,
+      correctWordCount: 12,
+      omissions: [],
+      substitutions: [{ expected: 'jumped', spoken: 'ran', classification: 'substitution' }],
+      insertions: [],
+      wordTimings: [
+        { word: 'The', startSec: 0.0, endSec: 0.3, confidence: 0.98, classification: 'correct' },
+        { word: 'fox',  startSec: 0.5, endSec: 0.8, confidence: 0.95, classification: 'correct' }
+      ],
+      wpm: 98,
+      fluencyMetrics: { speechRate: 98, silenceRatio: 0.08 },
+      disfluencyIndicators: [],
+      modelMetadata: { asrEngine: 'client-fallback-deterministic-aligner' }
+    };
+
+    const result = computeMultimodalScore({
+      transcript: 'The fox ran over the lazy dog',
+      targetPassage: 'The fox jumped over the lazy dog',
+      readingTelemetry: {
+        transcript: 'The fox ran over the lazy dog',
+        targetPassage: 'The fox jumped over the lazy dog',
+        durationSec: 8,
+        pauseCount: 1,
+        totalPauseDurationMs: 400,
+        averageHesitationMs: 200
+      },
+      readingAnalysis: mockAnalysis
+    }, '2');
+
+    assert.ok(result, 'computeMultimodalScore should return a result');
+    assert.ok(typeof result.compositeScore === 'number', 'compositeScore must be a number');
+    assert.ok(typeof result.riskBreakdown?.fluencyRisk === 'number', 'riskBreakdown.fluencyRisk must be a number');
+    assert.ok(['Low', 'Moderate', 'High'].includes(result.category), 'category must be Low/Moderate/High');
+  });
+
+  // 14. Integration: system completes gracefully when readingAnalysis is null (no speech service)
+  it('Scenario 14: Null readingAnalysis (no speech service) does not break scoring pipeline', async () => {
+    const { computeMultimodalScore } = await import('../src/engine/multimodalFusion.js');
+
+    const result = computeMultimodalScore({
+      transcript: 'The fox jumped over the lazy dog',
+      targetPassage: 'The fox jumped over the lazy dog',
+      readingTelemetry: {
+        transcript: 'The fox jumped over the lazy dog',
+        targetPassage: 'The fox jumped over the lazy dog',
+        durationSec: 7,
+        pauseCount: 0,
+        totalPauseDurationMs: 0,
+        averageHesitationMs: 0
+      },
+      readingAnalysis: null
+    }, '2');
+
+    assert.ok(result, 'computeMultimodalScore should return a result even without readingAnalysis');
+    assert.ok(typeof result.compositeScore === 'number', 'compositeScore must be a number');
+    assert.ok(result.riskBreakdown?.fluencyRisk >= 0 && result.riskBreakdown?.fluencyRisk <= 100,
+      'riskBreakdown.fluencyRisk must be in valid range [0, 100]');
+  });
+
+  // 15. Audio Data URL decoding in POST /api/reading/analyze
+  it('Scenario 15: POST /api/reading/analyze correctly accepts and decodes audioBase64 data URL', async () => {
+    const server = http.createServer(app);
+    await new Promise(resolve => server.listen(0, resolve));
+    const port = server.address().port;
+
+    try {
+      // Synthetic small WebM header bytes encoded as base64 data URL
+      const mockWebmBytes = Buffer.from([0x1A, 0x45, 0xDF, 0xA3, 0x9F, 0x42, 0x86, 0x81, 0x01, 0x42, 0xF7, 0x81, 0x01]);
+      const dataUrl = `data:audio/webm;codecs=opus;base64,${mockWebmBytes.toString('base64')}`;
+
+      const res = await fetch(`http://127.0.0.1:${port}/api/reading/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          audioBase64: dataUrl,
+          audioMimeType: 'audio/webm;codecs=opus',
+          transcript: "The blue bird sings sweetly",
+          expectedPassage: "The blue bird sings sweetly",
+          grade: "2",
+          durationSec: 5
+        })
+      });
+
+      assert.equal(res.status, 200);
+      const data = await res.json();
+      assert.ok(data.success);
+      assert.ok(data.analysis);
+      assert.equal(data.analysis.correctWordCount, 5);
+      assert.equal(data.analysis.decodingAccuracyPct, 100.0);
+    } finally {
+      await new Promise(resolve => server.close(resolve));
+    }
+  });
+
+  // 16. Graceful fallback when external speech service is offline with audioBase64
+  it('Scenario 16: External speech service timeout/offline with audioBase64 falls back cleanly to deterministic alignment', async () => {
+    const originalUrl = process.env.SPEECH_SERVICE_URL;
+    const originalTimeout = process.env.SPEECH_SERVICE_TIMEOUT_MS;
+
+    process.env.SPEECH_SERVICE_URL = 'http://127.0.0.1:59999'; // unreachable port
+    process.env.SPEECH_SERVICE_TIMEOUT_MS = '300';
+
+    const server = http.createServer(app);
+    await new Promise(resolve => server.listen(0, resolve));
+    const port = server.address().port;
+
+    try {
+      const mockAudio = Buffer.from([0x00, 0x01, 0x02, 0x03]).toString('base64');
+      const res = await fetch(`http://127.0.0.1:${port}/api/reading/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          audioBase64: mockAudio,
+          transcript: "A fast runner",
+          expectedPassage: "A fast runner",
+          grade: "2",
+          durationSec: 3
+        })
+      });
+
+      assert.equal(res.status, 200);
+      const data = await res.json();
+      assert.ok(data.success);
+      assert.ok(data.analysis);
+      assert.equal(data.analysis.modelMetadata.asrEngine, 'client-fallback-deterministic-aligner');
+      assert.equal(data.analysis.correctWordCount, 3);
+    } finally {
+      await new Promise(resolve => server.close(resolve));
+      if (originalUrl) process.env.SPEECH_SERVICE_URL = originalUrl;
+      else delete process.env.SPEECH_SERVICE_URL;
+      if (originalTimeout) process.env.SPEECH_SERVICE_TIMEOUT_MS = originalTimeout;
+      else delete process.env.SPEECH_SERVICE_TIMEOUT_MS;
+    }
+  });
+
 });

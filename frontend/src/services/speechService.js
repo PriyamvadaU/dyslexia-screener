@@ -90,6 +90,9 @@ export class SpeechAssessmentTracker {
     this.onEnd = onEnd;
 
     this.recognition = null;
+    this.mediaStream = null;
+    this.mediaRecorder = null;
+    this.audioChunks = [];
     this.isRecording = false;
     this.startTime = null;
     this.endTime = null;
@@ -101,7 +104,7 @@ export class SpeechAssessmentTracker {
     this.silenceCheckInterval = null;
   }
 
-  start() {
+  async start() {
     if (!isSpeechRecognitionSupported()) {
       if (this.onError) this.onError(new Error('Speech recognition is not supported in this browser. Please use Chrome or Edge.'));
       return false;
@@ -119,6 +122,7 @@ export class SpeechAssessmentTracker {
     this.transcript = '';
     this.wordTimestamps = [];
     this.pauseEvents = [];
+    this.audioChunks = [];
 
     // Periodic silence/hesitation detector
     this.silenceCheckInterval = setInterval(() => {
@@ -183,14 +187,49 @@ export class SpeechAssessmentTracker {
 
     try {
       this.recognition.start();
-      return true;
     } catch (err) {
       if (this.onError) this.onError(err);
       return false;
     }
+
+    // Concurrently initiate MediaRecorder raw microphone capture (graceful fallback)
+    if (typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia && typeof MediaRecorder !== 'undefined') {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        if (!this.isRecording) {
+          // Stopped before stream was acquired
+          stream.getTracks().forEach(track => track.stop());
+          return true;
+        }
+        this.mediaStream = stream;
+        let mimeType = '';
+        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+          mimeType = 'audio/webm;codecs=opus';
+        } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+          mimeType = 'audio/webm';
+        } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+          mimeType = 'audio/ogg;codecs=opus';
+        }
+
+        this.mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+        this.audioChunks = [];
+        this.mediaRecorder.ondataavailable = (event) => {
+          if (event.data && event.data.size > 0) {
+            this.audioChunks.push(event.data);
+          }
+        };
+        this.mediaRecorder.start(250);
+      } catch (mediaErr) {
+        console.warn('[SpeechTracker] MediaRecorder capture unavailable, using Web Speech fallback only:', mediaErr.message);
+        this.mediaStream = null;
+        this.mediaRecorder = null;
+      }
+    }
+
+    return true;
   }
 
-  stop() {
+  async stop() {
     this.isRecording = false;
     this.endTime = Date.now();
 
@@ -207,7 +246,55 @@ export class SpeechAssessmentTracker {
       }
     }
 
-    return this.getAssessmentMetrics();
+    // Asynchronously stop MediaRecorder and collect the audio Blob
+    let audioBlob = null;
+    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+      try {
+        audioBlob = await new Promise((resolve) => {
+          const timeout = setTimeout(() => {
+            const mimeType = this.mediaRecorder?.mimeType || 'audio/webm';
+            resolve(this.audioChunks.length > 0 ? new Blob(this.audioChunks, { type: mimeType }) : null);
+          }, 1000);
+
+          this.mediaRecorder.onstop = () => {
+            clearTimeout(timeout);
+            const mimeType = this.mediaRecorder?.mimeType || 'audio/webm';
+            const blob = this.audioChunks.length > 0 
+              ? new Blob(this.audioChunks, { type: mimeType })
+              : null;
+            resolve(blob);
+          };
+
+          try {
+            this.mediaRecorder.stop();
+          } catch (e) {
+            clearTimeout(timeout);
+            resolve(null);
+          }
+        });
+      } catch (recErr) {
+        console.warn('[SpeechTracker] MediaRecorder stop error:', recErr.message);
+      }
+    } else if (this.audioChunks.length > 0) {
+      const mimeType = this.mediaRecorder?.mimeType || 'audio/webm';
+      audioBlob = new Blob(this.audioChunks, { type: mimeType });
+    }
+
+    // Stop all microphone tracks to release hardware
+    if (this.mediaStream) {
+      try {
+        this.mediaStream.getTracks().forEach(track => track.stop());
+      } catch (trackErr) {
+        // ignore
+      }
+      this.mediaStream = null;
+    }
+
+    const metrics = this.getAssessmentMetrics();
+    return {
+      ...metrics,
+      audioBlob
+    };
   }
 
   getAssessmentMetrics() {

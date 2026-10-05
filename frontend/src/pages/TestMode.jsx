@@ -264,7 +264,7 @@ export function TestMode({ onOpenChildModal }) {
   };
 
   // Start Speech Recognition
-  const handleStartRecording = () => {
+  const handleStartRecording = async () => {
     if (!isSpeechRecognitionSupported()) {
       setSpeechError('Web Speech API is not supported in this browser. Please use Google Chrome or Microsoft Edge.');
       return;
@@ -287,7 +287,7 @@ export function TestMode({ onOpenChildModal }) {
       }
     });
 
-    const started = tracker.start();
+    const started = await tracker.start();
     if (started) {
       speechTrackerRef.current = tracker;
       setIsRecording(true);
@@ -306,11 +306,12 @@ export function TestMode({ onOpenChildModal }) {
       pauseCount: 0,
       totalPauseDurationMs: 0,
       averageHesitationMs: 0,
-      transcript
+      transcript,
+      audioBlob: null
     };
 
     if (speechTrackerRef.current && isRecording) {
-      metrics = speechTrackerRef.current.stop();
+      metrics = await speechTrackerRef.current.stop();
     }
 
     if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
@@ -350,6 +351,32 @@ export function TestMode({ onOpenChildModal }) {
       averageHesitationMs: Math.round((metrics.averageHesitationMs + avgCardReactionTime) / 2)
     };
 
+    // 4a. Try to get structured ReadingAnalysis from /api/reading/analyze
+    //     Non-blocking: if unavailable or SPEECH_SERVICE_URL absent, degrades to null.
+    //     The Web Speech API transcript in readingTelemetry remains the fallback.
+    let readingAnalysis = null;
+    if (selectedModule.hasOralReading && (metrics.transcript || transcript) && targetPassage) {
+      try {
+        const analysisResult = await api.analyzeReading({
+          audioBlob: metrics.audioBlob || null,
+          transcript: metrics.transcript || transcript,
+          expectedPassage: targetPassage,
+          grade: activeChild?.grade || 'grade1',
+          durationSec: metrics.durationSec,
+          pauseCount: metrics.pauseCount,
+          totalPauseDurationMs: metrics.totalPauseDurationMs,
+          averageHesitationMs: metrics.averageHesitationMs
+        });
+        if (analysisResult?.analysis) {
+          readingAnalysis = analysisResult.analysis;
+        }
+      } catch (e) {
+        // Expected when SPEECH_SERVICE_URL is absent or service is sleeping.
+        // Web Speech telemetry in readingTelemetry is sufficient for scoring.
+        console.warn('[TestMode] /api/reading/analyze unavailable, using Web Speech telemetry:', e.message);
+      }
+    }
+
     // 4. Compile Raw Feature Vector for Server-Side Scoring Engine
     const rawFeatures = {
       flashcardTotal,
@@ -364,7 +391,8 @@ export function TestMode({ onOpenChildModal }) {
       totalPauseDurationMs: metrics.totalPauseDurationMs,
       averageHesitationMs: Math.round((metrics.averageHesitationMs + avgCardReactionTime) / 2),
       transcript: metrics.transcript || transcript,
-      targetPassage
+      targetPassage,
+      readingAnalysis  // null when speech service unavailable — handled gracefully by extractReadingFeatures
     };
 
     try {

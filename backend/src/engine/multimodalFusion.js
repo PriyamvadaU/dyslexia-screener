@@ -64,6 +64,7 @@ export function computeMultimodalScore(rawData = {}, grade = '2', customConfig =
       totalPauseDurationMs: rawData.totalPauseDurationMs || rawData.readingTelemetry?.totalPauseDurationMs || 0,
       averageHesitationMs: rawData.averageHesitationMs || rawData.readingTelemetry?.averageHesitationMs || 0,
       audioTelemetry: rawData.audioTelemetry || {},
+      readingAnalysis: rawData.readingAnalysis || rawData.readingTelemetry?.readingAnalysis,
       grade
     });
   } else {

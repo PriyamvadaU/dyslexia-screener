@@ -193,13 +193,32 @@ export const api = {
   },
 
   async analyzeReading(params) {
-    const res = await fetch(`${API_BASE}/sessions/reading/analyze`, {
+    let payload = { ...params };
+
+    // Encode audioBlob to base64 data URL if present
+    if (payload.audioBlob && typeof Blob !== 'undefined' && payload.audioBlob instanceof Blob) {
+      try {
+        const audioBase64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(payload.audioBlob);
+        });
+        payload.audioBase64 = audioBase64;
+        payload.audioMimeType = payload.audioBlob.type || 'audio/webm';
+      } catch (blobErr) {
+        console.warn('[API] Failed to encode audioBlob to base64:', blobErr.message);
+      }
+      delete payload.audioBlob; // Do not send raw empty Blob object in JSON body
+    }
+
+    const res = await fetch(`${API_BASE}/reading/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         ...getAuthHeader()
       },
-      body: JSON.stringify(params)
+      body: JSON.stringify(payload)
     });
     return handleResponse(res);
   },
