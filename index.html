@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EduJourney</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFFBF5;
+    --card:#FFFFFF;
+    --teal:#6FBFB0; --teal-dark:#4A9C8C; --teal-light:#DFF3EF;
+    --coral:#FF9E85; --coral-dark:#F17A5E; --coral-light:#FFE4DA;
+    --sky:#7FCFEA; --sky-dark:#4FAFCF; --sky-light:#DFF4FA;
+    --lavender:#B7A6E0; --lavender-dark:#9280C9; --lavender-light:#EDE6F8;
+    --butter:#FFD873; --butter-dark:#E0B94A; --butter-light:#FFF3D6;
+    --ink:#45404A; --ink-soft:#8C8494; --ink-faint:#CFC8D6;
+    --shadow: 0 10px 26px rgba(69,64,74,0.10);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{ font-family:'Quicksand', sans-serif; color:var(--ink); background:var(--bg); min-height:100vh; }
+  button{ font-family:'Quicksand', sans-serif; }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
+  }
+
+  /* ================= LOGIN — full page (no background pattern) ================= */
+  #screen-login{ min-height:100vh; display:flex; }
+  .login-hero{
+    flex: 1 1 46%;
+    position:relative;
+    display:flex; flex-direction:column; justify-content:center; align-items:flex-start;
+    padding: 60px 64px;
+    background: linear-gradient(150deg, var(--teal) 0%, var(--sky) 45%, var(--lavender) 100%);
+    overflow:hidden;
+    color:#fff;
+  }
+  .login-hero::before, .login-hero::after{
+    content:''; position:absolute; border-radius:50%; background:rgba(255,255,255,0.14);
+  }
+  .login-hero::before{ width:340px; height:340px; top:-120px; right:-100px; }
+  .login-hero::after{ width:220px; height:220px; bottom:-80px; left:-60px; background:rgba(255,255,255,0.10); }
+  .hero-logo{ width:74px; height:74px; margin-bottom:22px; position:relative; z-index:1; }
+  .hero-title{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:44px; margin:0 0 14px; position:relative; z-index:1; }
+  .hero-sub{ font-weight:600; font-size:16px; line-height:1.6; max-width:380px; opacity:.95; position:relative; z-index:1; }
+  .hero-dots{ display:flex; gap:10px; margin-top:34px; position:relative; z-index:1; }
+  .hero-dots span{ width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,0.55); }
+  .hero-dots span:nth-child(2){ background:rgba(255,255,255,0.85); }
+
+  .login-panel{
+    flex: 1 1 54%;
+    display:flex; align-items:center; justify-content:center;
+    padding: 40px;
+  }
+  .login-form-wrap{ width:100%; max-width:380px; }
+  .brand-mini{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:15px; color:var(--ink-soft); letter-spacing:.06em; text-transform:uppercase; margin-bottom:6px; }
+  .login-title{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:26px; margin:0 0 30px; color:var(--ink); }
+
+  .field-label{ display:block; text-align:left; font-weight:700; font-size:13px; margin:0 0 7px 4px; }
+  .nickname-input{
+    width:100%; border:2.5px solid var(--sky); background:var(--sky-light);
+    border-radius:16px; padding:14px 16px; font-weight:600; font-size:15px;
+    color:var(--ink); margin-bottom:22px; outline:none;
+    transition: box-shadow .2s ease, border-color .2s ease;
+  }
+  .nickname-input:focus{ border-color:var(--teal); box-shadow:0 0 0 4px var(--teal-light); }
+
+  .pin-row{ display:flex; gap:12px; margin-bottom:26px; }
+  .pin-box{
+    width:56px; height:58px; border-radius:14px; border:2.5px solid var(--lavender);
+    background:var(--lavender-light); text-align:center; font-family:'Baloo 2', sans-serif;
+    font-size:22px; font-weight:700; color:var(--ink); outline:none;
+    transition: border-color .2s ease, box-shadow .2s ease, transform .15s ease;
+  }
+  .pin-box:focus{ border-color:var(--lavender-dark); box-shadow:0 0 0 4px #e3dcee; transform:translateY(-2px); }
+
+  .btn-primary{
+    width:100%; border:none; color:#fff; font-family:'Baloo 2', sans-serif;
+    font-weight:700; font-size:18px; padding:16px; border-radius:999px; cursor:pointer;
+    background: linear-gradient(135deg, var(--coral), var(--coral-dark));
+    box-shadow: 0 7px 0 #d05f45, 0 10px 18px rgba(241,122,94,0.30);
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .btn-primary:hover{ transform: translateY(-2px); }
+  .btn-primary:active{ transform: translateY(3px); box-shadow: 0 4px 0 #d05f45, 0 6px 12px rgba(241,122,94,0.25); }
+  .btn-primary:focus-visible{ outline:3px solid var(--teal-dark); outline-offset:3px; }
+
+  .grownup-link{ display:block; margin-top:18px; font-weight:700; font-size:12.5px; color:var(--ink-soft); background:none; border:none; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+
+  /* ================= APP SHELL ================= */
+  #app-shell{ display:none; min-height:100vh; position:relative; }
+
+  /* Decorative pastel background pattern — every app page EXCEPT login.
+     Sits behind the navbar + content, at 50% opacity as requested. */
+  .app-bg{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    opacity:0.5;
+    pointer-events:none;
+    background-image:
+      radial-gradient(circle, rgba(111,191,176,0.55) 22px, transparent 23px),
+      radial-gradient(circle, rgba(255,158,133,0.50) 18px, transparent 19px),
+      radial-gradient(circle, rgba(127,207,234,0.50) 20px, transparent 21px),
+      radial-gradient(circle, rgba(183,166,224,0.45) 16px, transparent 17px),
+      radial-gradient(circle, rgba(255,216,115,0.50) 14px, transparent 15px);
+    background-size: 300px 300px, 300px 300px, 300px 300px, 300px 300px, 300px 300px;
+    background-position: 0 0, 150px 90px, 60px 200px, 220px 20px, 90px 260px;
+  }
+
+  .navbar{
+    position:relative; z-index:1;
+    display:flex; align-items:center; gap:28px;
+    padding: 16px 40px; background: rgba(255,255,255,0.9); backdrop-filter: blur(6px);
+    border-bottom:2px solid var(--sky-light);
+    position:sticky; top:0; z-index:5;
+  }
+  .navbar-brand{ display:flex; align-items:center; gap:9px; margin-right:8px; }
+  .navbar-brand svg{ width:26px; height:26px; }
+  .navbar-brand span{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:17px; color:var(--teal-dark); }
+  .navbar-brand span em{ font-style:normal; color:var(--lavender-dark); }
+
+  .navbar-tabs{ display:flex; gap:6px; flex:1; }
+  .nav-btn{
+    display:flex; align-items:center; gap:9px;
+    border:none; background:transparent; cursor:pointer;
+    padding:10px 16px; border-radius:999px; font-weight:700; font-size:13.5px;
+    color:var(--ink-soft); transition: background .15s ease, color .15s ease;
+    white-space:nowrap;
+  }
+  .nav-btn:hover:not(:disabled){ background: var(--sky-light); color:var(--ink); }
+  .nav-btn.active{ background: linear-gradient(135deg, var(--teal), var(--teal-dark)); color:#fff; }
+  .nav-btn:disabled{ opacity:.5; cursor:not-allowed; }
+  .nav-icon{ width:18px; display:flex; align-items:center; justify-content:center; }
+  .nav-soon{ font-size:8px; font-weight:700; background:var(--ink-faint); color:#fff; padding:2px 6px; border-radius:999px; }
+
+  .navbar-right{ display:flex; align-items:center; gap:14px; }
+  .streak-pill{ display:flex; align-items:center; gap:6px; background:var(--butter-light); padding:8px 14px; border-radius:999px; font-weight:700; font-size:12.5px; color:var(--butter-dark); }
+  .avatar{
+    width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background: linear-gradient(135deg, var(--lavender), var(--coral));
+    color:#fff; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:15px;
+  }
+  .logout-link{ font-weight:700; font-size:12px; color:var(--ink-faint); background:none; border:none; cursor:pointer; }
+
+  .content-area{ position:relative; z-index:1; padding: 34px 40px 50px; max-width:1140px; margin:0 auto; }
+  .content{ display:none; }
+  .content.active{ display:block; }
+
+  /* ---- Menu screen ---- */
+  .greet-line{ margin-bottom:22px; }
+  .greet-line .hi{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size:21px; }
+  .greet-line .sub{ font-size:13px; color:var(--ink-soft); font-weight:600; margin-top:2px; }
+
+  .menu-grid{ display:grid; grid-template-columns: 2fr 1fr; gap:20px; align-items:start; }
+  .tile{
+    border:none; text-align:left; cursor:pointer; border-radius:22px 22px 22px 6px;
+    padding:22px; box-shadow: var(--shadow); transition: transform .15s ease;
+  }
+  .tile:hover{ transform: translateY(-3px); }
+  .tile:focus-visible{ outline:3px solid var(--ink); outline-offset:2px; }
+  .tile-featured{
+    background: linear-gradient(135deg, var(--coral), var(--coral-dark));
+    color:#fff; display:flex; align-items:center; gap:18px; grid-column:1 / 2;
+  }
+  .tile-icon-circle{ width:58px; height:58px; border-radius:50%; background:rgba(255,255,255,0.26); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .tile-title{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size:19px; margin:0 0 4px; }
+  .tile-sub{ font-size:13px; font-weight:600; opacity:.94; margin:0; line-height:1.4; }
+
+  .side-panel{ grid-column:2/3; grid-row:1/4; background:var(--card); border-radius:22px; padding:20px; box-shadow: var(--shadow); }
+  .side-panel h3{ font-family:'Baloo 2', sans-serif; font-size:15px; margin:0 0 14px; }
+  .mini-stat{ display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--bg); font-weight:700; font-size:13px; }
+  .mini-stat span.num{ font-family:'Baloo 2', sans-serif; font-size:16px; }
+  .mini-stat:nth-child(1) span.num{ color:var(--teal-dark); }
+  .mini-stat:nth-child(2) span.num{ color:var(--coral-dark); }
+  .mini-stat:nth-child(3) span.num{ color:var(--sky-dark); }
+  .mini-stat:nth-child(4) span.num{ color:var(--lavender-dark); }
+
+  .tile-row{ grid-column:1/2; display:flex; gap:16px; }
+  .tile-small{ flex:1; background: var(--butter-light); display:flex; flex-direction:column; gap:8px; opacity:.65; cursor:not-allowed; }
+  .tile-small.alt{ background:var(--lavender-light); }
+  .tile-small:hover{ transform:none; }
+  .tile-small .tile-icon-circle{ width:40px; height:40px; background:rgba(69,64,74,0.07); }
+  .tile-small .tile-title{ font-size:14.5px; color:var(--ink); }
+  .badge-soon{ align-self:flex-start; background:#fff; color:var(--ink-soft); font-size:9.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:3px 9px; border-radius:999px; }
+
+  .tile-progress{ grid-column:1/2; background:var(--sky-light); display:flex; align-items:center; gap:18px; }
+  .tile-progress .tile-icon-circle{ background:rgba(69,64,74,0.07); }
+  .tile-progress .tile-title, .tile-progress .tile-sub{ color:var(--ink); }
+
+  /* ---- Reading Practice screen ---- */
+  .practice-head{ margin-bottom:20px; }
+  .practice-eyebrow{ font-size:12px; font-weight:700; color:var(--ink-soft); margin:0 0 4px; }
+  .practice-kiddy-title{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:23px; margin:0 0 6px; color:var(--teal-dark); }
+  .practice-instruction{ font-weight:600; font-size:14px; color:var(--ink-soft); margin:0; }
+
+  .practice-panel{ display:grid; grid-template-columns: 1.6fr 1fr; gap:24px; align-items:start; }
+  .passage-textbox{
+    width:100%; min-height:220px; resize:none; border:2.5px solid var(--sky);
+    background: var(--sky-light); border-radius:22px; padding:22px;
+    font-family:'Baloo 2', sans-serif; font-size:19px; line-height:1.75; color:var(--ink);
+    outline:none;
+  }
+  .passage-textbox:focus{ border-color: var(--teal); box-shadow:0 0 0 4px var(--teal-light); }
+
+  .mic-panel{ background:var(--card); border-radius:22px; padding:24px; box-shadow:var(--shadow); text-align:center; }
+  .mic-btn{
+    width:76px; height:76px; border-radius:50%; border:none; cursor:pointer;
+    background: linear-gradient(135deg, var(--coral), var(--coral-dark));
+    display:flex; align-items:center; justify-content:center; margin:6px auto 10px; position:relative;
+    box-shadow: 0 8px 20px rgba(241,122,94,0.35);
+  }
+  .mic-btn::before, .mic-btn::after{ content:''; position:absolute; inset:0; border-radius:50%; border:2.5px solid var(--coral); opacity:.5; animation: ping 2.2s ease-out infinite; }
+  .mic-btn::after{ animation-delay:1.1s; }
+  @keyframes ping{ 0%{ transform:scale(1); opacity:.5; } 100%{ transform:scale(1.7); opacity:0; } }
+  .mic-label{ font-weight:700; font-size:12.5px; color:var(--ink-soft); display:block; margin-bottom:16px; }
+
+  .waveform{ display:flex; align-items:flex-end; justify-content:center; gap:4px; height:30px; margin-bottom:16px; }
+  .wave-bar{ width:4px; border-radius:3px; background:var(--lavender); animation: wave 1.1s ease-in-out infinite; }
+  .wave-bar:nth-child(1){ height:9px; } .wave-bar:nth-child(2){ height:20px; animation-delay:.1s;}
+  .wave-bar:nth-child(3){ height:28px; animation-delay:.2s;} .wave-bar:nth-child(4){ height:14px; animation-delay:.3s;}
+  .wave-bar:nth-child(5){ height:23px; animation-delay:.4s;} .wave-bar:nth-child(6){ height:12px; animation-delay:.5s;}
+  @keyframes wave{ 0%,100%{ transform:scaleY(.6);} 50%{ transform:scaleY(1);} }
+
+  .legend{ display:flex; flex-direction:column; gap:8px; text-align:left; border-top:1px solid var(--bg); padding-top:14px; }
+  .legend-item{ display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; color:var(--ink-soft); }
+  .dot{ width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .dot.clear{ background:var(--teal);} .dot.close{ background:var(--butter);} .dot.retry{ background:var(--lavender);}
+
+  .encourage-chip{ display:inline-block; background:var(--teal-light); color:var(--teal-dark); font-weight:700; font-size:12px; padding:7px 14px; border-radius:999px; margin-top:16px; }
+
+  /* ---- Progress screen ---- */
+  .progress-heading{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:22px; margin:0 0 4px; }
+  .progress-sub{ font-size:13px; font-weight:600; color:var(--ink-soft); margin:0 0 24px; }
+  .stat-row{ display:flex; gap:16px; margin-bottom:22px; }
+  .stat-card{ flex:1; border-radius:20px; padding:18px; text-align:center; box-shadow:var(--shadow); }
+  .stat-card.c1{ background: var(--teal-light); }
+  .stat-card.c2{ background: var(--coral-light); }
+  .stat-card.c3{ background: var(--sky-light); }
+  .stat-num{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:26px; color:var(--ink); }
+  .stat-label{ font-size:11px; font-weight:700; color:var(--ink-soft); margin-top:3px; letter-spacing:.03em; }
+
+  .progress-grid{ display:grid; grid-template-columns: 1.5fr 1fr; gap:20px; }
+  .chart-card{ background:var(--card); border-radius:22px; padding:22px; box-shadow:var(--shadow); }
+  .chart-title{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size:15px; margin:0 0 18px; }
+  .bars{ display:flex; align-items:flex-end; justify-content:space-between; height:130px; gap:12px; }
+  .bar-col{ display:flex; flex-direction:column; align-items:center; gap:8px; flex:1; }
+  .bar{ width:100%; max-width:26px; border-radius:8px 8px 4px 4px; }
+  .bar-day{ font-size:10px; font-weight:700; color:var(--ink-faint); }
+
+  .badges-card{ background:var(--card); border-radius:22px; padding:22px; box-shadow:var(--shadow); }
+  .badges-row{ display:flex; flex-direction:column; gap:14px; margin-top:14px; }
+  .badge{ display:flex; align-items:center; gap:12px; }
+  .badge-circle{ width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .badge-circle.b1{ background:var(--butter-light);} .badge-circle.b2{ background:var(--teal-light);} .badge-circle.b3{ background:var(--lavender-light);}
+  .badge-name{ font-size:12.5px; font-weight:700; color:var(--ink); }
+
+  .footer-note{ font-weight:700; font-size:13px; color:var(--coral-dark); margin-top:24px; }
+
+  @media (max-width: 860px){
+    #screen-login{ flex-direction:column; }
+    .navbar{ flex-wrap:wrap; gap:14px; }
+    .navbar-tabs{ order:3; width:100%; overflow-x:auto; }
+    .menu-grid, .practice-panel, .progress-grid{ grid-template-columns: 1fr; }
+    .side-panel{ grid-row:auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN — full page (no background pattern here) ================= -->
+<section id="screen-login">
+  <div class="login-hero">
+    <svg class="hero-logo" viewBox="0 0 64 64" aria-hidden="true">
+      <rect x="6" y="30" width="8" height="18" rx="4" fill="#fff" opacity="0.95"/>
+      <rect x="18" y="18" width="8" height="30" rx="4" fill="#fff" opacity="0.8"/>
+      <rect x="30" y="8" width="8" height="40" rx="4" fill="#fff"/>
+      <rect x="42" y="16" width="8" height="32" rx="4" fill="#fff" opacity="0.8"/>
+      <rect x="54" y="24" width="4" height="24" rx="2" fill="#fff" opacity="0.6"/>
+    </svg>
+    <h1 class="hero-title">EduJourney</h1>
+    <p class="hero-sub">A friendly place to practice reading out loud, get gentle feedback, and watch your progress grow — one passage at a time.</p>
+    <div class="hero-dots"><span></span><span></span><span></span></div>
+  </div>
+
+  <div class="login-panel">
+    <div class="login-form-wrap">
+      <p class="brand-mini">Welcome back</p>
+      <h2 class="login-title">Log in to continue</h2>
+
+      <form onsubmit="return false;">
+        <label class="field-label" for="nickname">Your nickname</label>
+        <input class="nickname-input" id="nickname" type="text" placeholder="e.g. Maya" />
+
+        <label class="field-label">Your secret code</label>
+        <div class="pin-row">
+          <input class="pin-box" maxlength="1" inputmode="numeric" />
+          <input class="pin-box" maxlength="1" inputmode="numeric" />
+          <input class="pin-box" maxlength="1" inputmode="numeric" />
+          <input class="pin-box" maxlength="1" inputmode="numeric" />
+        </div>
+
+        <button type="button" class="btn-primary" onclick="loginIn()">Let's go</button>
+      </form>
+      <button class="grownup-link" type="button">I'm a grown-up</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= APP SHELL (background pattern lives here) ================= -->
+<div id="app-shell">
+  <div class="app-bg" aria-hidden="true"></div>
+
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <svg viewBox="0 0 64 64"><rect x="6" y="30" width="8" height="18" rx="4" fill="#6FBFB0"/><rect x="18" y="18" width="8" height="30" rx="4" fill="#7FCFEA"/><rect x="30" y="8" width="8" height="40" rx="4" fill="#FF9E85"/><rect x="42" y="16" width="8" height="32" rx="4" fill="#B7A6E0"/></svg>
+      <span>Edu<em>Journey</em></span>
+    </div>
+
+    <div class="navbar-tabs" id="navbarTabs">
+      <button class="nav-btn active" data-target="content-menu">
+        <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 11 12 4l8 7M6 10v9h12v-9" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span> Home
+      </button>
+      <button class="nav-btn" data-target="content-practice">
+        <span class="nav-icon"><svg width="14" height="16" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" stroke="currentColor" stroke-width="2"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span> Reading Practice
+      </button>
+      <button class="nav-btn" data-target="content-progress">
+        <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 20V10M12 20V4M20 20v-7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span> Progress
+      </button>
+      <button class="nav-btn" disabled>
+        <span class="nav-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M3 21l4-1 11-11-3-3L4 17l-1 4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span> Handwriting <span class="nav-soon">SOON</span>
+      </button>
+      <button class="nav-btn" disabled>
+        <span class="nav-icon"><svg width="14" height="16" viewBox="0 0 24 24" fill="none"><rect x="5" y="3" width="14" height="18" rx="2" stroke="currentColor" stroke-width="2"/><path d="M9 8h6M9 12h6M9 16h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span> Assessments <span class="nav-soon">SOON</span>
+      </button>
+    </div>
+
+    <div class="navbar-right">
+      <div class="streak-pill">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 2c2 3-1 5-1 8a4 4 0 0 0 8 0c1 4-1 9-7 9a7 7 0 0 1-7-7c0-4 3-6 3-6s1 2 4-4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        5 day streak
+      </div>
+      <div class="avatar">M</div>
+      <button class="logout-link" onclick="logOut()">Log out</button>
+    </div>
+  </nav>
+
+  <div class="content-area">
+
+    <!-- MENU -->
+    <section id="content-menu" class="content active">
+      <div class="greet-line">
+        <div class="hi">Hi, Maya!</div>
+        <div class="sub">What shall we practice today?</div>
+      </div>
+      <div class="menu-grid">
+        <button class="tile tile-featured" data-goto="content-practice">
+          <div class="tile-icon-circle">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" fill="#fff"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+          <div>
+            <p class="tile-title">Reading Practice</p>
+            <p class="tile-sub">Read a short passage out loud and get gentle, instant feedback</p>
+          </div>
+        </button>
+
+        <div class="tile-row">
+          <div class="tile tile-small" aria-disabled="true">
+            <span class="badge-soon">Coming soon</span>
+            <div class="tile-icon-circle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 21l4-1 11-11-3-3L4 17l-1 4z" stroke="#454049" stroke-width="2" stroke-linejoin="round"/></svg></div>
+            <p class="tile-title">Handwriting</p>
+          </div>
+          <div class="tile tile-small alt" aria-disabled="true">
+            <span class="badge-soon">Coming soon</span>
+            <div class="tile-icon-circle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="5" y="3" width="14" height="18" rx="2" stroke="#454049" stroke-width="2"/><path d="M9 8h6M9 12h6M9 16h3" stroke="#454049" stroke-width="2" stroke-linecap="round"/></svg></div>
+            <p class="tile-title">Assessments</p>
+          </div>
+        </div>
+
+        <button class="tile tile-progress" data-goto="content-progress">
+          <div class="tile-icon-circle"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 20V10M12 20V4M20 20v-7" stroke="#454049" stroke-width="2.4" stroke-linecap="round"/></svg></div>
+          <div>
+            <p class="tile-title">My Progress</p>
+            <p class="tile-sub">See how far you've come this week</p>
+          </div>
+        </button>
+
+        <div class="side-panel">
+          <h3>This week</h3>
+          <div class="mini-stat">Accuracy <span class="num">82%</span></div>
+          <div class="mini-stat">Exercises <span class="num">24</span></div>
+          <div class="mini-stat">Streak <span class="num">5 days</span></div>
+          <div class="mini-stat" style="border-bottom:none;">Badges <span class="num">3</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- READING PRACTICE -->
+    <section id="content-practice" class="content">
+      <div class="practice-head">
+        <p class="practice-eyebrow">Passage 3 of 10 · The Kind Fox</p>
+        <h1 class="practice-kiddy-title">Time to read out loud</h1>
+        <p class="practice-instruction">Read the following passage:</p>
+      </div>
+
+      <div class="practice-panel">
+        <textarea class="passage-textbox" readonly>Once upon a time, a fox found a hurt bird by the path. The fox did not eat the bird. Instead, it carried the bird home and kept it warm all night.</textarea>
+
+        <div class="mic-panel">
+          <div class="waveform" aria-hidden="true">
+            <span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span>
+            <span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span>
+          </div>
+          <button class="mic-btn" aria-label="Start recording">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" fill="#fff"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+          <span class="mic-label">Tap and read aloud</span>
+
+          <div class="legend">
+            <div class="legend-item"><span class="dot clear"></span> Nice and clear</div>
+            <div class="legend-item"><span class="dot close"></span> Almost there</div>
+            <div class="legend-item"><span class="dot retry"></span> Let's try again</div>
+          </div>
+          <span class="encourage-chip">You're doing great, Maya!</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROGRESS -->
+    <section id="content-progress" class="content">
+      <h1 class="progress-heading">Your Progress</h1>
+      <p class="progress-sub">Way to go, Maya — keep it up!</p>
+
+      <div class="stat-row">
+        <div class="stat-card c1"><div class="stat-num">82%</div><div class="stat-label">ACCURACY</div></div>
+        <div class="stat-card c2"><div class="stat-num">24</div><div class="stat-label">EXERCISES</div></div>
+        <div class="stat-card c3"><div class="stat-num">5</div><div class="stat-label">DAY STREAK</div></div>
+      </div>
+
+      <div class="progress-grid">
+        <div class="chart-card">
+          <p class="chart-title">Accuracy this week</p>
+          <div class="bars">
+            <div class="bar-col"><div class="bar" style="height:48px; background:var(--sky);"></div><span class="bar-day">Mon</span></div>
+            <div class="bar-col"><div class="bar" style="height:66px; background:var(--lavender);"></div><span class="bar-day">Tue</span></div>
+            <div class="bar-col"><div class="bar" style="height:56px; background:var(--sky);"></div><span class="bar-day">Wed</span></div>
+            <div class="bar-col"><div class="bar" style="height:100px; background:var(--coral);"></div><span class="bar-day">Thu</span></div>
+            <div class="bar-col"><div class="bar" style="height:76px; background:var(--lavender);"></div><span class="bar-day">Fri</span></div>
+            <div class="bar-col"><div class="bar" style="height:112px; background:var(--teal);"></div><span class="bar-day">Sat</span></div>
+            <div class="bar-col"><div class="bar" style="height:84px; background:var(--butter);"></div><span class="bar-day">Sun</span></div>
+          </div>
+        </div>
+
+        <div class="badges-card">
+          <p class="chart-title">Badges earned</p>
+          <div class="badges-row">
+            <div class="badge"><div class="badge-circle b1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2 14.6 9.2 22 12 14.6 14.8 12 22 9.4 14.8 2 12 9.4 9.2Z" stroke="#E0B94A" stroke-width="1.6" stroke-linejoin="round"/></svg></div><span class="badge-name">Perfect Passage</span></div>
+            <div class="badge"><div class="badge-circle b2"><svg width="16" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2c2 3-1 5-1 8a4 4 0 0 0 8 0c1 4-1 9-7 9a7 7 0 0 1-7-7c0-4 3-6 3-6s1 2 4-4z" stroke="#4A9C8C" stroke-width="1.6" stroke-linejoin="round"/></svg></div><span class="badge-name">Week Streak</span></div>
+            <div class="badge"><div class="badge-circle b3"><svg width="16" height="18" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" stroke="#9280C9" stroke-width="1.6"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4" stroke="#9280C9" stroke-width="1.6" stroke-linecap="round"/></svg></div><span class="badge-name">Clear Speaker</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="footer-note">You're getting clearer every day, Maya.</p>
+    </section>
+
+  </div>
+</div>
+
+<script>
+  function loginIn(){
+    document.getElementById('screen-login').style.display = 'none';
+    document.getElementById('app-shell').style.display = 'block';
+  }
+  function logOut(){
+    document.getElementById('app-shell').style.display = 'none';
+    document.getElementById('screen-login').style.display = 'flex';
+  }
+  function showContent(id){
+    document.querySelectorAll('.content').forEach(function(c){ c.classList.remove('active'); });
+    var target = document.getElementById(id);
+    if(target) target.classList.add('active');
+    document.querySelectorAll('.nav-btn[data-target]').forEach(function(b){
+      b.classList.toggle('active', b.dataset.target === id);
+    });
+  }
+
+  document.getElementById('navbarTabs').addEventListener('click', function(e){
+    var btn = e.target.closest('.nav-btn');
+    if(!btn || btn.disabled) return;
+    showContent(btn.dataset.target);
+  });
+
+  document.querySelectorAll('[data-goto]').forEach(function(tile){
+    tile.addEventListener('click', function(){
+      showContent(tile.dataset.goto);
+    });
+  });
+
+  var pinBoxes = document.querySelectorAll('.pin-box');
+  pinBoxes.forEach(function(box, i){
+    box.addEventListener('input', function(){ if(box.value && i < pinBoxes.length - 1) pinBoxes[i+1].focus(); });
+    box.addEventListener('keydown', function(e){ if(e.key === 'Backspace' && !box.value && i > 0) pinBoxes[i-1].focus(); });
+  });
+</script>
+</body>
+</html>
