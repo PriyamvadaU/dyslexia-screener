@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduJourney</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Fredoka:wght@400;500;600;700&family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFFBF5;
+    --card:#FFFFFF;
+    --teal:#5FA8B8;      --teal-light:#DDF1EE;      --teal-dark:#3F8494;
+    --mint:#5FA57E;      --mint-light:#E3F4E8;      --mint-dark:#3D7A5C;
+    --coral:#F0917A;     --coral-light:#FFE4DA;     --coral-dark:#C96A54;
+    --sky:#7FCFEA;       --sky-light:#DFF4FA;       --sky-dark:#4FAFCF;
+    --lavender:#B7A6E0;  --lavender-light:#EDE6F8;  --lavender-dark:#8F7BC4;
+    --butter:#F5CD5A;    --butter-light:#FFF3D6;    --butter-dark:#C99A2E;
+    --ink:#46414A; --ink-soft:#8C8494; --ink-faint:#D8D2DC;
+    --border: #E9E2D8;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{ font-family:'Fredoka', sans-serif; color:var(--ink); background:var(--bg); min-height:100vh; }
+  button, input{ font-family:'Fredoka', sans-serif; }
+  h1, h2, .display-font{ font-family:'Bowlby One SC', cursive; font-weight:400; }
+  .readable{ font-family:'Lexend', sans-serif; }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
+  }
+
+  /* ============ Shared decorative background patterns ============ */
+  .bg-pattern-waves{
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='60' viewBox='0 0 120 60'%3E%3Cpath d='M0 30 Q 15 8 30 30 T 60 30 T 90 30 T 120 30' stroke='%235FA57E' stroke-width='4' fill='none' opacity='0.30'/%3E%3C/svg%3E");
+    background-repeat: repeat; background-size: 120px 60px;
+  }
+  .bg-pattern-suns{
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cg fill='%23F0917A' opacity='0.26'%3E%3Ccircle cx='40' cy='40' r='10'/%3E%3Cellipse cx='40' cy='16' rx='4' ry='9'/%3E%3Cellipse cx='40' cy='64' rx='4' ry='9'/%3E%3Cellipse cx='16' cy='40' rx='9' ry='4'/%3E%3Cellipse cx='64' cy='40' rx='9' ry='4'/%3E%3Cellipse cx='23' cy='23' rx='4' ry='9' transform='rotate(45 23 23)'/%3E%3Cellipse cx='57' cy='23' rx='4' ry='9' transform='rotate(-45 57 23)'/%3E%3Cellipse cx='23' cy='57' rx='4' ry='9' transform='rotate(-45 23 57)'/%3E%3Cellipse cx='57' cy='57' rx='4' ry='9' transform='rotate(45 57 57)'/%3E%3Ccircle cx='120' cy='110' r='10'/%3E%3Cellipse cx='120' cy='86' rx='4' ry='9'/%3E%3Cellipse cx='120' cy='134' rx='4' ry='9'/%3E%3Cellipse cx='96' cy='110' rx='9' ry='4'/%3E%3Cellipse cx='144' cy='110' rx='9' ry='4'/%3E%3Cellipse cx='103' cy='93' rx='4' ry='9' transform='rotate(45 103 93)'/%3E%3Cellipse cx='137' cy='93' rx='4' ry='9' transform='rotate(-45 137 93)'/%3E%3Cellipse cx='103' cy='127' rx='4' ry='9' transform='rotate(-45 103 127)'/%3E%3Cellipse cx='137' cy='127' rx='4' ry='9' transform='rotate(45 137 127)'/%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat; background-size: 160px 160px;
+  }
+  .bg-pattern-sprinkles{
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Crect x='10' y='15' width='16' height='5' rx='2.5' fill='%235FA8B8' opacity='0.45' transform='rotate(20 18 17)'/%3E%3Crect x='60' y='10' width='16' height='5' rx='2.5' fill='%23F0917A' opacity='0.45' transform='rotate(-15 68 12)'/%3E%3Crect x='105' y='30' width='16' height='5' rx='2.5' fill='%235FA57E' opacity='0.45' transform='rotate(35 113 32)'/%3E%3Crect x='25' y='60' width='16' height='5' rx='2.5' fill='%23B7A6E0' opacity='0.45' transform='rotate(-25 33 62)'/%3E%3Crect x='80' y='70' width='16' height='5' rx='2.5' fill='%235FA8B8' opacity='0.45' transform='rotate(10 88 72)'/%3E%3Crect x='15' y='100' width='16' height='5' rx='2.5' fill='%23F5CD5A' opacity='0.45' transform='rotate(-30 23 102)'/%3E%3Crect x='105' y='95' width='16' height='5' rx='2.5' fill='%235FA57E' opacity='0.45' transform='rotate(20 113 97)'/%3E%3Crect x='60' y='115' width='16' height='5' rx='2.5' fill='%23F0917A' opacity='0.45' transform='rotate(-10 68 117)'/%3E%3C/svg%3E");
+    background-repeat: repeat; background-size: 140px 140px;
+  }
+
+  /* ================= LOGIN ================= */
+  #screen-login{ min-height:100vh; display:flex; }
+  .login-hero{
+    flex: 1 1 46%;
+    position:relative;
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    padding: 50px 40px;
+    background: var(--sky);
+    overflow:hidden; text-align:center;
+  }
+  .login-hero .deco{ position:absolute; border-radius:50%; background:rgba(255,255,255,0.30); }
+  .deco1{ width:220px; height:220px; top:-70px; right:-60px; }
+  .deco2{ width:140px; height:140px; bottom:-40px; left:-40px; background:rgba(255,255,255,0.22); }
+  .hero-title{ font-size:34px; color:#fff; margin:18px 0 8px; position:relative; z-index:1; line-height:1.3; }
+  .hero-sub{ font-family:'Fredoka'; font-weight:600; font-size:16px; color:#fff; max-width:340px; opacity:.95; position:relative; z-index:1; margin:0; }
+
+  .mascot{ position:relative; z-index:1; width:170px; height:150px; }
+
+  .login-panel{
+    flex: 1 1 54%;
+    display:flex; align-items:center; justify-content:center;
+    padding: 40px; background: var(--bg);
+  }
+  .login-form-wrap{ width:100%; max-width:380px; text-align:center; }
+  .login-title{ font-size:22px; margin:0 0 30px; color:var(--ink); }
+  .field-label{ display:block; text-align:left; font-weight:600; font-size:13px; margin:0 0 7px 4px; color:var(--ink-soft); }
+
+  .nickname-input{
+    width:100%; border:2.5px solid var(--sky); background:var(--sky-light);
+    border-radius:16px; padding:14px 16px; font-weight:600; font-size:15px;
+    color:var(--ink); margin-bottom:22px; outline:none;
+    transition: border-color .2s ease;
+  }
+  .nickname-input:focus{ border-color:var(--teal); }
+
+  .pin-row{ display:flex; gap:12px; margin-bottom:26px; justify-content:center; }
+  .pin-box{
+    width:52px; height:56px; border-radius:14px; border:2.5px solid var(--lavender);
+    background:var(--lavender-light); text-align:center; font-family:'Fredoka';
+    font-size:22px; font-weight:600; color:var(--ink); outline:none;
+    transition: border-color .2s ease;
+  }
+  .pin-box:focus{ border-color:var(--lavender-dark); }
+
+  .btn{
+    border:none; cursor:pointer; border-radius:999px; font-family:'Fredoka'; font-weight:600;
+    transition: transform .1s ease, background-color .15s ease;
+    box-shadow:none;
+  }
+  .btn:active{ transform: translateY(2px); }
+  .btn-block{ width:100%; padding:16px; font-size:17px; }
+  .btn-coral{ background:var(--coral); color:#fff; } .btn-coral:hover{ background:var(--coral-dark); }
+  .btn-teal{ background:var(--teal); color:#fff; } .btn-teal:hover{ background:var(--teal-dark); }
+  .btn-outline{ background:transparent; color:var(--ink); border:2px solid var(--ink-faint); }
+  .btn-outline:hover{ border-color:var(--ink-soft); }
+
+  .grownup-link{ display:block; margin-top:18px; font-weight:600; font-size:12.5px; color:var(--ink-soft); background:none; border:none; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+
+  /* ================= APP SHELL ================= */
+  #app-shell{ display:none; min-height:100vh; }
+
+  .navbar{
+    display:flex; align-items:center; gap:24px;
+    padding: 14px 32px; background: var(--card); border-bottom:2px solid var(--teal-light);
+    position:sticky; top:0; z-index:5; flex-wrap:wrap;
+  }
+  .navbar-brand{ display:flex; align-items:center; gap:8px; margin-right:8px; }
+  .navbar-brand span{ font-size:15px; color:var(--teal-dark); font-family:'Bowlby One SC'; }
+
+  .navbar-tabs{ display:flex; gap:6px; flex:1; overflow-x:auto; }
+  .nav-btn{
+    display:flex; align-items:center; gap:8px;
+    border:none; background:transparent; cursor:pointer;
+    padding:10px 15px; border-radius:999px; font-weight:600; font-size:13px;
+    color:var(--ink-soft); transition: background .15s ease, color .15s ease;
+    white-space:nowrap;
+  }
+  .nav-btn:hover:not(:disabled){ background: var(--teal-light); color:var(--ink); }
+  .nav-btn.active{ background: var(--teal); color:#fff; }
+  .nav-btn:disabled{ opacity:.55; cursor:not-allowed; }
+  .nav-soon{ font-size:8px; font-weight:700; background:var(--ink-faint); color:#fff; padding:2px 6px; border-radius:999px; }
+
+  .navbar-right{ display:flex; align-items:center; gap:12px; }
+  .avatar{
+    width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background: var(--lavender); color:#fff; font-family:'Fredoka'; font-weight:600; font-size:15px;
+  }
+  .logout-link{ font-weight:600; font-size:12px; color:var(--ink-faint); background:none; border:none; cursor:pointer; }
+
+  .content-area{ padding: 32px 32px 50px; max-width:1140px; margin:0 auto; }
+  .content{ display:none; }
+  .content.active{ display:block; }
+
+  /* ---- Home ---- */
+  .greet-line{ margin-bottom:22px; }
+  .greet-line .hi{ font-size:19px; }
+  .greet-line .sub{ font-size:13px; color:var(--ink-soft); font-weight:600; margin-top:4px; }
+
+  .menu-grid{ display:grid; grid-template-columns: 2fr 1fr; gap:18px; align-items:start; }
+  .tile{
+    text-align:left; cursor:pointer; border-radius:20px; border:2px solid transparent;
+    padding:20px; transition: transform .12s ease, border-color .12s ease;
+  }
+  .tile:hover{ transform: translateY(-2px); }
+  .tile:disabled{ cursor:not-allowed; opacity:.6; }
+  .tile:disabled:hover{ transform:none; }
+  .tile-featured{ background: var(--coral); color:#fff; display:flex; align-items:center; gap:16px; grid-column:1/2; }
+  .tile-icon-circle{ width:52px; height:52px; border-radius:50%; background:rgba(255,255,255,0.28); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .tile-title{ font-family:'Fredoka'; font-weight:600; font-size:17px; margin:0 0 4px; }
+  .tile-sub{ font-size:12.5px; font-weight:500; opacity:.94; margin:0; line-height:1.4; }
+
+  .side-panel{ grid-column:2/3; grid-row:1/4; background:var(--card); border:2px solid var(--border); border-radius:20px; padding:18px; }
+  .side-panel h3{ font-family:'Fredoka'; font-weight:600; font-size:14px; margin:0 0 12px; }
+  .mini-stat{ display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--bg); font-weight:600; font-size:13px; }
+  .mini-stat span.num{ font-family:'Fredoka'; font-weight:700; font-size:15px; }
+  .mini-stat:nth-child(1) span.num{ color:var(--teal-dark); }
+  .mini-stat:nth-child(2) span.num{ color:var(--coral-dark); }
+  .mini-stat:nth-child(3) span.num{ color:var(--lavender-dark); }
+
+  .tile-row{ grid-column:1/2; display:flex; gap:14px; }
+  .tile-mid{ flex:1; background:var(--mint-light); display:flex; flex-direction:column; gap:6px; }
+  .tile-mid.alt{ background:var(--lavender-light); }
+  .tile-mid .tile-icon-circle{ width:42px; height:42px; background:rgba(70,65,74,0.08); }
+  .tile-mid .tile-title{ font-size:15px; color:var(--ink); }
+  .tile-mid .tile-sub{ color:var(--ink-soft); }
+
+  .tile-soon-row{ grid-column:1/2; display:flex; gap:14px; }
+  .tile-soon{ flex:1; background:var(--butter-light); display:flex; flex-direction:column; gap:6px; }
+  .tile-soon.alt{ background:var(--sky-light); }
+  .tile-soon .tile-icon-circle{ width:38px; height:38px; background:rgba(70,65,74,0.07); }
+  .tile-soon .tile-title{ font-size:14px; color:var(--ink); }
+  .badge-soon{ align-self:flex-start; background:#fff; color:var(--ink-soft); font-size:9px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:3px 8px; border-radius:999px; }
+
+  /* ---- Reading Practice ---- */
+  .practice-head{ margin-bottom:18px; }
+  .mode-toggle{ display:inline-flex; gap:6px; background:var(--card); border:2px solid var(--border); border-radius:999px; padding:4px; margin-bottom:14px; }
+  .mode-toggle button{ border:none; background:transparent; padding:8px 18px; border-radius:999px; font-weight:600; font-size:13px; color:var(--ink-soft); cursor:pointer; }
+  .mode-toggle button.active{ background:var(--teal); color:#fff; }
+  .practice-title{ font-size:21px; margin:0 0 6px; color:var(--teal-dark); }
+  .practice-instruction{ font-weight:500; font-size:14px; color:var(--ink-soft); margin:0; }
+
+  .practice-panel{ display:grid; grid-template-columns: 1.6fr 1fr; gap:22px; align-items:start; margin-top:18px; }
+  .passage-card{
+    background:var(--sky-light); border:2px solid var(--sky); border-radius:20px; padding:26px;
+  }
+  .passage-card p{ font-family:'Lexend', sans-serif; font-size:18px; line-height:1.8; color:var(--ink); margin:0; }
+
+  .mic-panel{ background:var(--card); border:2px solid var(--border); border-radius:20px; padding:24px; text-align:center; }
+  .mic-btn{
+    width:76px; height:76px; border-radius:50%; border:none; cursor:pointer;
+    background: var(--teal); display:flex; align-items:center; justify-content:center; margin:6px auto 14px;
+  }
+  .mic-btn.is-recording{ background:var(--coral); }
+  .mic-status{ font-family:'Fredoka'; font-weight:600; font-size:13px; color:var(--ink-soft); display:block; margin-bottom:18px; }
+  .mic-status.is-recording{ color:var(--coral-dark); }
+  .reading-actions{ display:flex; justify-content:center; gap:10px; }
+
+  /* ---- Results page (sun background) ---- */
+  #content-results{ margin: -32px -32px 0; padding: 32px; }
+  .results-heading{ font-size:22px; margin:0 0 4px; font-family:'Fredoka'; font-weight:700; color:var(--coral-dark); }
+  .results-sub{ font-size:13px; font-weight:600; color:var(--ink-soft); margin:0 0 22px; }
+  .results-layout{ display:flex; align-items:center; gap:22px; margin-bottom:22px; flex-wrap:wrap; }
+  .score-circle{
+    width:170px; height:170px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    color:#fff; background: var(--teal); border-radius:50%; flex-shrink:0;
+  }
+  .score-circle span{ font-family:'Fredoka'; font-size:12px; }
+  .score-circle strong{ font-family:'Fredoka'; font-weight:700; font-size:52px; line-height:1; }
+  .secondary-score{ flex:1; min-width:200px; padding:20px; background:var(--mint-light); border-radius:18px; }
+  .secondary-score span{ font-family:'Fredoka'; font-size:13px; color:var(--ink-soft); }
+  .secondary-score strong{ display:block; font-family:'Fredoka'; font-weight:700; color:var(--mint-dark); font-size:36px; margin:4px 0; }
+  .recommendations{ padding:22px; background:rgba(255,255,255,0.9); border:2px solid var(--border); border-radius:18px; }
+  .recommendations h3{ font-family:'Fredoka'; font-weight:700; font-size:17px; margin:0 0 14px; }
+  .rec-item{ padding:12px 0; border-top:1px solid var(--bg); }
+  .rec-item:first-of-type{ border-top:none; }
+  .rec-item strong{ font-family:'Fredoka'; font-size:14.5px; }
+  .rec-item p{ font-family:'Lexend'; margin:3px 0 0; color:var(--ink-soft); font-size:13px; line-height:1.5; }
+
+  /* ---- Progress page (sprinkles background) ---- */
+  #content-progress{ margin: -32px -32px 0; padding: 32px; }
+  .progress-heading{ font-size:21px; margin:0 0 4px; font-family:'Fredoka'; font-weight:700; color:var(--teal-dark); }
+  .progress-sub{ font-size:13px; font-weight:600; color:var(--ink-soft); margin:0 0 22px; }
+  .stat-row{ display:flex; gap:14px; margin-bottom:20px; flex-wrap:wrap; }
+  .stat-card{ flex:1; min-width:120px; border-radius:18px; padding:16px; text-align:center; background:rgba(255,255,255,0.9); border:2px solid var(--border); }
+  .stat-num{ font-family:'Fredoka'; font-weight:700; font-size:24px; color:var(--ink); }
+  .stat-label{ font-size:10.5px; font-weight:700; color:var(--ink-soft); margin-top:3px; letter-spacing:.03em; }
+
+  .progress-grid{ display:grid; grid-template-columns: 1.5fr 1fr; gap:18px; }
+  .chart-card{ background:rgba(255,255,255,0.92); border:2px solid var(--border); border-radius:20px; padding:20px; }
+  .chart-title{ font-family:'Fredoka'; font-weight:600; font-size:14px; margin:0 0 16px; }
+  .bars{ display:flex; align-items:flex-end; justify-content:space-between; height:120px; gap:10px; }
+  .bar-col{ display:flex; flex-direction:column; align-items:center; gap:6px; flex:1; }
+  .bar{ width:100%; max-width:24px; border-radius:6px 6px 3px 3px; }
+  .bar-day{ font-size:10px; font-weight:600; color:var(--ink-faint); }
+
+  .badges-card{ background:rgba(255,255,255,0.92); border:2px solid var(--border); border-radius:20px; padding:20px; }
+  .badges-row{ display:flex; flex-direction:column; gap:12px; margin-top:12px; }
+  .badge{ display:flex; align-items:center; gap:10px; }
+  .badge-circle{ width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .badge-circle.b1{ background:var(--butter-light);} .badge-circle.b2{ background:var(--teal-light);} .badge-circle.b3{ background:var(--lavender-light);}
+  .badge-name{ font-size:12px; font-weight:600; color:var(--ink); }
+
+  .footer-note{ font-family:'Fredoka'; font-weight:600; font-size:13px; color:var(--coral-dark); margin-top:20px; }
+
+  @media (max-width: 860px){
+    #screen-login{ flex-direction:column; }
+    .menu-grid, .practice-panel, .progress-grid{ grid-template-columns: 1fr; }
+    .side-panel{ grid-row:auto; }
+    .results-layout{ flex-direction:column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<section id="screen-login">
+  <div class="login-hero">
+    <div class="deco deco1"></div>
+    <div class="deco deco2"></div>
+
+    <svg class="mascot" viewBox="0 0 170 150" aria-hidden="true">
+      <!-- friendly monster mascot -->
+      <ellipse cx="85" cy="95" rx="65" ry="50" fill="#B7A6E0"/>
+      <path d="M45 55 Q52 30 62 52 Z" fill="#9C89CC"/>
+      <path d="M125 55 Q118 30 108 52 Z" fill="#9C89CC"/>
+      <circle cx="62" cy="88" r="17" fill="#fff"/>
+      <circle cx="108" cy="88" r="17" fill="#fff"/>
+      <circle cx="65" cy="90" r="7" fill="#46414A"/>
+      <circle cx="105" cy="90" r="7" fill="#46414A"/>
+      <circle cx="67" cy="87" r="2.4" fill="#fff"/>
+      <circle cx="107" cy="87" r="2.4" fill="#fff"/>
+      <circle cx="48" cy="105" r="8" fill="#F0917A" opacity="0.55"/>
+      <circle cx="122" cy="105" r="8" fill="#F0917A" opacity="0.55"/>
+      <path d="M70 112 Q85 124 100 112" stroke="#46414A" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    </svg>
+
+    <h1 class="hero-title">Welcome!</h1>
+    <p class="hero-sub">Let's get signed in and start today's reading adventure.</p>
+  </div>
+
+  <div class="login-panel">
+    <div class="login-form-wrap">
+      <h2 class="login-title">Log in to continue</h2>
+
+      <form onsubmit="return false;">
+        <label class="field-label" for="nickname">Your nickname</label>
+        <input class="nickname-input" id="nickname" type="text" placeholder="e.g. Maya" />
+
+        <label class="field-label">Your secret code</label>
+        <div class="pin-row" id="pinRow">
+          <input class="pin-box" maxlength="1" inputmode="numeric" />
+          <input class="pin-box" maxlength="1" inputmode="numeric" />
+          <input class="pin-box" maxlength="1" inputmode="numeric" />
+          <input class="pin-box" maxlength="1" inputmode="numeric" />
+        </div>
+
+        <button type="button" class="btn btn-coral btn-block" onclick="logIn()">Let's go</button>
+      </form>
+      <button class="grownup-link" type="button">I'm a grown-up</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= APP SHELL ================= -->
+<div id="app-shell">
+  <nav class="navbar">
+    <div class="navbar-brand"><span>EduJourney</span></div>
+
+    <div class="navbar-tabs" id="navbarTabs">
+      <button class="nav-btn active" data-target="content-home">Home</button>
+      <button class="nav-btn" data-target="content-practice">Reading Practice</button>
+      <button class="nav-btn" data-target="content-results">Results</button>
+      <button class="nav-btn" data-target="content-progress">Progress</button>
+      <button class="nav-btn" disabled>Writing Practice <span class="nav-soon">SOON</span></button>
+      <button class="nav-btn" disabled>Writing Assessment <span class="nav-soon">SOON</span></button>
+    </div>
+
+    <div class="navbar-right">
+      <div class="avatar" id="avatarInitial">M</div>
+      <button class="logout-link" onclick="logOut()">Log out</button>
+    </div>
+  </nav>
+
+  <div class="content-area">
+
+    <!-- HOME -->
+    <section id="content-home" class="content active">
+      <div class="greet-line">
+        <div class="hi" id="greetName">Hi, Maya!</div>
+        <div class="sub">What shall we practice today?</div>
+      </div>
+      <div class="menu-grid">
+        <button class="tile tile-featured" data-goto="content-practice">
+          <div class="tile-icon-circle">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" fill="#fff"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+          <div>
+            <p class="tile-title">Reading Practice</p>
+            <p class="tile-sub">Read a short passage out loud and get gentle feedback</p>
+          </div>
+        </button>
+
+        <div class="tile-row">
+          <button class="tile tile-mid" data-goto="content-results">
+            <div class="tile-icon-circle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#46414A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="#46414A" stroke-width="2"/></svg></div>
+            <p class="tile-title">My Results</p>
+            <p class="tile-sub">See your last session</p>
+          </button>
+          <button class="tile tile-mid alt" data-goto="content-progress">
+            <div class="tile-icon-circle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 20V10M12 20V4M20 20v-7" stroke="#46414A" stroke-width="2.2" stroke-linecap="round"/></svg></div>
+            <p class="tile-title">My Progress</p>
+            <p class="tile-sub">See how far you've come</p>
+          </button>
+        </div>
+
+        <div class="tile-soon-row">
+          <button class="tile tile-soon" disabled>
+            <span class="badge-soon">Coming soon</span>
+            <div class="tile-icon-circle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 21l4-1 11-11-3-3L4 17l-1 4z" stroke="#46414A" stroke-width="2" stroke-linejoin="round"/></svg></div>
+            <p class="tile-title">Writing Practice</p>
+          </button>
+          <button class="tile tile-soon alt" disabled>
+            <span class="badge-soon">Coming soon</span>
+            <div class="tile-icon-circle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="5" y="3" width="14" height="18" rx="2" stroke="#46414A" stroke-width="2"/><path d="M9 8h6M9 12h6M9 16h3" stroke="#46414A" stroke-width="2" stroke-linecap="round"/></svg></div>
+            <p class="tile-title">Writing Assessment</p>
+          </button>
+        </div>
+
+        <div class="side-panel">
+          <h3>This week</h3>
+          <div class="mini-stat">Accuracy <span class="num">82%</span></div>
+          <div class="mini-stat">Sessions <span class="num">6</span></div>
+          <div class="mini-stat" style="border-bottom:none;">Streak <span class="num">5 days</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- READING PRACTICE -->
+    <section id="content-practice" class="content">
+      <div class="practice-head">
+        <div class="mode-toggle" id="modeToggle">
+          <button class="active" data-mode="Practice">Practice</button>
+          <button data-mode="Test">Test</button>
+        </div>
+        <h1 class="practice-title">Time to read out loud</h1>
+        <p class="practice-instruction">Read the passage below, then tap the mic when you're ready.</p>
+      </div>
+
+      <div class="practice-panel">
+        <div class="passage-card">
+          <p>Once upon a time, a fox found a hurt bird by the path. The fox did not eat the bird. Instead, it carried the bird home and kept it warm all night.</p>
+        </div>
+
+        <div class="mic-panel">
+          <button class="mic-btn" id="micBtn" aria-label="Start recording" onclick="toggleRecording()">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" fill="#fff"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+          <span class="mic-status" id="micStatus">Tap to start recording</span>
+          <div class="reading-actions">
+            <button class="btn btn-outline" onclick="resetRecording()">Restart</button>
+            <button class="btn btn-teal" onclick="finishReading()">Finish</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESULTS (sun background) -->
+    <section id="content-results" class="content bg-pattern-suns">
+      <h1 class="results-heading">Nice work, Maya!</h1>
+      <p class="results-sub" id="resultsSub">Here's how your last Practice session went.</p>
+      <div class="results-layout">
+        <div class="score-circle"><span>OVERALL</span><strong>86</strong><span>/ 100</span></div>
+        <div class="secondary-score">
+          <span>Reading accuracy</span>
+          <strong>92%</strong>
+          <span>Strong progress this session!</span>
+        </div>
+      </div>
+      <div class="recommendations">
+        <h3>Suggested focus areas</h3>
+        <div class="rec-item"><strong>Keep building fluency</strong><p>Practice reading one short passage aloud each day.</p></div>
+        <div class="rec-item"><strong>Explore new words</strong><p>Pause to talk about unfamiliar words and their meaning.</p></div>
+        <div class="rec-item"><strong>Celebrate expression</strong><p>Try changing your voice for different characters and moments.</p></div>
+      </div>
+    </section>
+
+    <!-- PROGRESS (sprinkles background) -->
+    <section id="content-progress" class="content bg-pattern-sprinkles">
+      <h1 class="progress-heading">Your Progress</h1>
+      <p class="progress-sub">All your practice sessions and tests, all in one place.</p>
+
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-num">82%</div><div class="stat-label">AVG ACCURACY</div></div>
+        <div class="stat-card"><div class="stat-num">24</div><div class="stat-label">PRACTICE SESSIONS</div></div>
+        <div class="stat-card"><div class="stat-num">6</div><div class="stat-label">TESTS TAKEN</div></div>
+        <div class="stat-card"><div class="stat-num">5</div><div class="stat-label">DAY STREAK</div></div>
+      </div>
+
+      <div class="progress-grid">
+        <div class="chart-card">
+          <p class="chart-title">Accuracy this week</p>
+          <div class="bars">
+            <div class="bar-col"><div class="bar" style="height:44px; background:var(--sky);"></div><span class="bar-day">Mon</span></div>
+            <div class="bar-col"><div class="bar" style="height:60px; background:var(--lavender);"></div><span class="bar-day">Tue</span></div>
+            <div class="bar-col"><div class="bar" style="height:50px; background:var(--sky);"></div><span class="bar-day">Wed</span></div>
+            <div class="bar-col"><div class="bar" style="height:92px; background:var(--coral);"></div><span class="bar-day">Thu</span></div>
+            <div class="bar-col"><div class="bar" style="height:70px; background:var(--lavender);"></div><span class="bar-day">Fri</span></div>
+            <div class="bar-col"><div class="bar" style="height:100px; background:var(--teal);"></div><span class="bar-day">Sat</span></div>
+            <div class="bar-col"><div class="bar" style="height:76px; background:var(--butter);"></div><span class="bar-day">Sun</span></div>
+          </div>
+        </div>
+
+        <div class="badges-card">
+          <p class="chart-title">Badges earned</p>
+          <div class="badges-row">
+            <div class="badge"><div class="badge-circle b1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2 14.6 9.2 22 12 14.6 14.8 12 22 9.4 14.8 2 12 9.4 9.2Z" stroke="#C99A2E" stroke-width="1.6" stroke-linejoin="round"/></svg></div><span class="badge-name">Perfect Passage</span></div>
+            <div class="badge"><div class="badge-circle b2"><svg width="15" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2c2 3-1 5-1 8a4 4 0 0 0 8 0c1 4-1 9-7 9a7 7 0 0 1-7-7c0-4 3-6 3-6s1 2 4-4z" stroke="#3F8494" stroke-width="1.6" stroke-linejoin="round"/></svg></div><span class="badge-name">Week Streak</span></div>
+            <div class="badge"><div class="badge-circle b3"><svg width="15" height="16" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" stroke="#8F7BC4" stroke-width="1.6"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4" stroke="#8F7BC4" stroke-width="1.6" stroke-linecap="round"/></svg></div><span class="badge-name">Clear Speaker</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="footer-note">You're getting clearer every day, Maya.</p>
+    </section>
+
+  </div>
+</div>
+
+<script>
+  var currentMode = 'Practice';
+  var isRecording = false;
+
+  function logIn(){
+    var nickname = document.getElementById('nickname').value.trim() || 'Friend';
+    document.getElementById('greetName').textContent = 'Hi, ' + nickname + '!';
+    document.getElementById('avatarInitial').textContent = nickname.charAt(0).toUpperCase();
+    document.getElementById('screen-login').style.display = 'none';
+    document.getElementById('app-shell').style.display = 'block';
+    showContent('content-home');
+  }
+
+  function logOut(){
+    document.getElementById('app-shell').style.display = 'none';
+    document.getElementById('screen-login').style.display = 'flex';
+  }
+
+  function showContent(id){
+    document.querySelectorAll('.content').forEach(function(c){ c.classList.remove('active'); });
+    var target = document.getElementById(id);
+    if (target) target.classList.add('active');
+    document.querySelectorAll('.nav-btn[data-target]').forEach(function(b){
+      b.classList.toggle('active', b.dataset.target === id);
+    });
+  }
+
+  document.getElementById('navbarTabs').addEventListener('click', function(e){
+    var btn = e.target.closest('.nav-btn');
+    if (!btn || btn.disabled) return;
+    showContent(btn.dataset.target);
+  });
+
+  document.querySelectorAll('[data-goto]').forEach(function(tile){
+    tile.addEventListener('click', function(){ showContent(tile.dataset.goto); });
+  });
+
+  document.getElementById('modeToggle').addEventListener('click', function(e){
+    var btn = e.target.closest('button');
+    if (!btn) return;
+    currentMode = btn.dataset.mode;
+    document.querySelectorAll('#modeToggle button').forEach(function(b){
+      b.classList.toggle('active', b === btn);
+    });
+  });
+
+  function toggleRecording(){
+    isRecording = !isRecording;
+    var micBtn = document.getElementById('micBtn');
+    var micStatus = document.getElementById('micStatus');
+    micBtn.classList.toggle('is-recording', isRecording);
+    micStatus.classList.toggle('is-recording', isRecording);
+    micStatus.textContent = isRecording ? 'Recording...' : 'Tap to start recording';
+  }
+
+  function resetRecording(){
+    isRecording = false;
+    document.getElementById('micBtn').classList.remove('is-recording');
+    var micStatus = document.getElementById('micStatus');
+    micStatus.classList.remove('is-recording');
+    micStatus.textContent = 'Tap to start recording';
+  }
+
+  function finishReading(){
+    resetRecording();
+    document.getElementById('resultsSub').textContent = "Here's how your last " + currentMode + " session went.";
+    showContent('content-results');
+  }
+
+  var pinBoxes = document.querySelectorAll('.pin-box');
+  pinBoxes.forEach(function(box, i){
+    box.addEventListener('input', function(){ if (box.value && i < pinBoxes.length - 1) pinBoxes[i+1].focus(); });
+    box.addEventListener('keydown', function(e){ if (e.key === 'Backspace' && !box.value && i > 0) pinBoxes[i-1].focus(); });
+  });
+</script>
+</body>
+</html>
